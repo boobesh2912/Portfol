@@ -120,7 +120,9 @@ export default function EditorPage() {
     </div>
   )
 
-  const isFirstVisit = !onboardingComplete && !profile?.bio && !profile?.tagline && !profile?.full_name
+  // Show onboarding if user has never completed it AND has no meaningful profile data
+  const hasProfileData = profile?.full_name || profile?.tagline || profile?.bio || profile?.template !== undefined
+  const isFirstVisit = !onboardingComplete && !hasProfileData
   if (isFirstVisit) return <OnboardingFlow onComplete={handleOnboardingComplete} />
 
   const currentTemplate = profile?.template || 'editorial'
