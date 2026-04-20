@@ -51,7 +51,7 @@ export default function DashboardLayout() {
           <div style={{ padding: '0 24px 24px', borderBottom: '1px solid var(--border)', marginBottom: 16 }}>
             <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', marginBottom: 4, letterSpacing: '.06em', textTransform: 'uppercase' }}>Your portfolio</div>
             <a href={`/${profile.username}`} target="_blank" rel="noreferrer" style={{ fontSize: 13, color: 'var(--accent)', fontWeight: 500 }}>
-              portfol.me/{profile.username} ↗
+              {window.location.host}/{profile.username} ↗
             </a>
           </div>
         )}

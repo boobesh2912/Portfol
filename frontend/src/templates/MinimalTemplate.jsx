@@ -274,7 +274,7 @@ export default function MinimalTemplate({
             </div>
           </section>
         )}
-        {customSections.filter(cs => visible.includes(cs.section_key)).map(cs => (
+        {visible.includes('custom') && customSections.map(cs => (
           <section key={cs.id} id={cs.section_key} style={{ padding: '44px 48px', borderBottom: `1px solid ${C.border}` }}>
             <SLabel>{cs.section_label}</SLabel>
             {cs.content && <p style={{ fontSize: 14, color: C.text, lineHeight: 1.8, maxWidth: 680 }}>{cs.content}</p>}

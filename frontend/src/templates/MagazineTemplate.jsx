@@ -294,7 +294,7 @@ export default function MagazineTemplate({
           </div>
         </section>
       )}
-      {customSections.filter(cs => visible.includes(cs.section_key)).map(cs => (
+      {visible.includes('custom') && customSections.map(cs => (
         <section key={cs.id} id={cs.section_key} style={{ padding: '56px 52px', borderBottom: `1px solid ${C.border}` }}>
           <div style={{ display: 'grid', gridTemplateColumns: '60px 1fr', gap: 24, alignItems: 'start' }}>
             <Num />

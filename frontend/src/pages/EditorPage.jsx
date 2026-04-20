@@ -124,7 +124,7 @@ export default function EditorPage() {
   )
 
   // Show onboarding if user has never completed it AND has no meaningful profile data
-  const hasProfileData = profile?.full_name || profile?.tagline || profile?.bio || profile?.template !== undefined
+  const hasProfileData = profile?.full_name || profile?.tagline || profile?.bio || profile?.template
   const isFirstVisit = !onboardingComplete && !hasProfileData
   if (isFirstVisit) return <OnboardingFlow onComplete={handleOnboardingComplete} />
 

@@ -254,7 +254,7 @@ export default function BoldTemplate({
           </div>
         </section>
       )}
-      {customSections.filter(cs => visible.includes(cs.section_key)).map(cs => (
+      {visible.includes('custom') && customSections.map(cs => (
         <section key={cs.id} id={cs.section_key} style={{ padding: '64px 52px', borderBottom: `1px solid ${C.border}`, ...sStyle(cs.section_key) }}>
           <SLabel>{cs.section_label}</SLabel>
           {cs.content && <p style={{ fontSize: 15, color: C.text, lineHeight: 1.8, maxWidth: 700 }}>{cs.content}</p>}

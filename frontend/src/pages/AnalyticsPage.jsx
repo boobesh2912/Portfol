@@ -52,7 +52,7 @@ export default function AnalyticsPage() {
     <div style={{ padding: '40px 48px', maxWidth: 1100 }}>
       <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 800, color: 'var(--text-heading)', marginBottom: 8, letterSpacing: -0.5 }}>Analytics</h1>
       <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 40 }}>
-        {profile?.username && <span>portfol.me/{profile.username} · </span>}
+        {profile?.username && <span>{window.location.host}/{profile.username} · </span>}
         Last updated now
       </p>
 

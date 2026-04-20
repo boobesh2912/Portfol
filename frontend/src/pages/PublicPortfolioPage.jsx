@@ -53,7 +53,7 @@ export default function PublicPortfolioPage() {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#fafaf8', padding: 24, fontFamily: "'Outfit', sans-serif" }}>
       <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 80, fontWeight: 600, color: '#e5e3de', marginBottom: 16, lineHeight: 1 }}>404</div>
       <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 600, color: '#1a1a18', marginBottom: 8 }}>Portfolio not found</div>
-      <div style={{ fontSize: 14, color: '#9a9890', marginBottom: 32 }}>portfol.me/{username} doesn't exist yet.</div>
+      <div style={{ fontSize: 14, color: '#9a9890', marginBottom: 32 }}>{window.location.host}/{username} doesn't exist yet.</div>
       <Link to="/signup" style={{ background: '#1a1a18', color: '#fff', padding: '12px 28px', borderRadius: 8, fontWeight: 600, fontSize: 14, textDecoration: 'none' }}>
         Claim this URL →
       </Link>

@@ -291,7 +291,7 @@ export default function CardGridTemplate({
           </div>
         </section>
       )}
-      {customSections.filter(cs => visible.includes(cs.section_key)).map(cs => (
+      {visible.includes('custom') && customSections.map(cs => (
         <section key={cs.id} id={cs.section_key} style={{ padding: '52px 48px', borderBottom: `1px solid ${C.border}` }}>
           <SHead title={cs.section_label} />
           {cs.content && <p style={{ fontSize: 14, color: C.text, lineHeight: 1.8, maxWidth: 700 }}>{cs.content}</p>}

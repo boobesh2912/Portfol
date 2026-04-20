@@ -280,7 +280,7 @@ export default function TerminalTemplate({
           </div>
         </section>
       )}
-      {customSections.filter(cs => visible.includes(cs.section_key)).map(cs => (
+      {visible.includes('custom') && customSections.map(cs => (
         <section key={cs.id} id={cs.section_key} style={{ padding: '44px 52px', borderBottom: `1px solid ${C.border}` }}>
           <div style={{ fontFamily: mono, fontSize: 10, color: C.green, letterSpacing: '.18em', textTransform: 'uppercase', marginBottom: 20 }}>$ cat {cs.section_key}.txt</div>
           {cs.content && <p style={{ color: C.text, fontSize: 13, lineHeight: 1.8 }}>{cs.content}</p>}

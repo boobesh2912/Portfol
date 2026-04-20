@@ -500,7 +500,7 @@ export default function OnboardingFlow({ onComplete }) {
           <div style={{ background: 'var(--bg-card)', padding: '9px 14px', display: 'flex', alignItems: 'center', gap: 6, borderBottom: '1px solid var(--border)' }}>
             {['#ef4444', '#f59e0b', '#22c55e'].map(c => <div key={c} style={{ width: 8, height: 8, borderRadius: '50%', background: c }} />)}
             <div style={{ flex: 1, background: 'var(--bg-warm)', borderRadius: 4, padding: '3px 10px', fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-muted)', marginLeft: 8, maxWidth: 200 }}>
-              portfol.me/{preview.username}
+              {window.location.host}/{preview.username}
             </div>
           </div>
           <div style={{ maxHeight: 'calc(100vh - 160px)', overflow: 'auto' }}>

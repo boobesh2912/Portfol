@@ -364,7 +364,7 @@ export default function EditorialTemplate({
           </section>
         )}
 
-        {customSections.filter(cs => visible.includes(cs.section_key)).map(cs => (
+        {visible.includes('custom') && customSections.map(cs => (
           <section key={cs.id} id={cs.section_key} style={{ padding: '52px 52px', borderBottom: `1px solid ${C.border}`, ...sStyle(cs.section_key) }}>
             <SectionLabel>{cs.section_label}</SectionLabel>
             {cs.content && <p style={{ fontSize: 14, color: C.textMid, lineHeight: 1.8, fontWeight: 300, maxWidth: 680 }}>{cs.content}</p>}
