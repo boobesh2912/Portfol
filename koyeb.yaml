@@ -1,0 +1,35 @@
+name: portfol-api
+services:
+  - name: api
+    type: web
+    git:
+      repository: github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME
+      branch: master
+    docker:
+      dockerfile: backend/Dockerfile
+    ports:
+      - port: 8000
+        protocol: http
+    routes:
+      - path: /
+        port: 8000
+    health_checks:
+      - path: /health
+        port: 8000
+    env:
+      - name: CLERK_PUBLISHABLE_KEY
+        value: CHANGE_ME
+      - name: SUPABASE_URL
+        value: CHANGE_ME
+      - name: SUPABASE_SERVICE_KEY
+        value: CHANGE_ME
+      - name: SUPABASE_JWT_SECRET
+        value: CHANGE_ME
+      - name: FRONTEND_URL
+        value: CHANGE_ME
+      - name: DODO_API_KEY
+        value: skip
+      - name: DODO_WEBHOOK_SECRET
+        value: skip
+      - name: DODO_PRODUCT_ID
+        value: skip

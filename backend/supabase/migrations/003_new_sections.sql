@@ -46,7 +46,9 @@ alter table public.publications enable row level security;
 alter table public.quotes enable row level security;
 alter table public.custom_sections enable row level security;
 
-create policy "public_read_books"  on public.books           for select using (true);
-create policy "public_read_pubs"   on public.publications    for select using (true);
-create policy "public_read_quotes" on public.quotes          for select using (true);
-create policy "public_read_custom" on public.custom_sections for select using (true);
+do $$ begin
+  if not exists (select 1 from pg_policies where tablename='books'          and policyname='public_read_books')  then create policy "public_read_books"  on public.books           for select using (true); end if;
+  if not exists (select 1 from pg_policies where tablename='publications'   and policyname='public_read_pubs')   then create policy "public_read_pubs"   on public.publications    for select using (true); end if;
+  if not exists (select 1 from pg_policies where tablename='quotes'         and policyname='public_read_quotes') then create policy "public_read_quotes" on public.quotes          for select using (true); end if;
+  if not exists (select 1 from pg_policies where tablename='custom_sections' and policyname='public_read_custom') then create policy "public_read_custom" on public.custom_sections for select using (true); end if;
+end $$;
