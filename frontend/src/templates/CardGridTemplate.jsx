@@ -18,6 +18,7 @@ const SKILL_COLORS = [
 export default function CardGridTemplate({
   profile, skills = [], projects = [], socialLinks = [], hiddenSections = [], sectionOrder = [],
   experiences = [], educations = [], certifications = [], services = [], testimonials = [],
+  books = [], publications = [], quotes = [], customSections = [],
   sectionSettings = {},
 }) {
   const visible = (sectionOrder.length ? sectionOrder : ['hero', 'about', 'skills', 'projects', 'contact']).filter(s => !hiddenSections.includes(s))
@@ -246,6 +247,59 @@ export default function CardGridTemplate({
           </div>
         </section>
       )}
+
+      {visible.includes('books') && books.length > 0 && (
+        <section id="books" style={{ padding: '52px 48px', borderBottom: `1px solid ${C.border}` }}>
+          <SHead title="Books" />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(190px,1fr))', gap: 16 }}>
+            {books.map((b, i) => (
+              <div key={b.id||i} style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 14, padding: '18px 20px' }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: C.head, marginBottom: 4 }}>{b.title}</div>
+                {b.author && <div style={{ fontFamily: mono, fontSize: 10, color: C.accent, marginBottom: 6 }}>{b.author}{b.year ? ` · ${b.year}` : ''}</div>}
+                {b.notes && <p style={{ fontSize: 12, color: C.text, lineHeight: 1.6 }}>{b.notes}</p>}
+                {b.url && <a href={b.url} target="_blank" rel="noopener noreferrer" style={{ fontFamily: mono, fontSize: 10, color: C.accent, textDecoration: 'none' }}>View ↗</a>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+      {visible.includes('publications') && publications.length > 0 && (
+        <section id="publications" style={{ padding: '52px 48px', borderBottom: `1px solid ${C.border}` }}>
+          <SHead title="Publications" />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {publications.map((p, i) => (
+              <div key={p.id||i} style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 12, padding: '18px 20px' }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: C.head, marginBottom: 4 }}>{p.title}</div>
+                {(p.publisher||p.year) && <div style={{ fontFamily: mono, fontSize: 10, color: C.accent, marginBottom: 6 }}>{[p.publisher,p.year].filter(Boolean).join(' · ')}</div>}
+                {p.description && <p style={{ fontSize: 13, color: C.text, lineHeight: 1.7 }}>{p.description}</p>}
+                {p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" style={{ fontFamily: mono, fontSize: 10, color: C.accent, textDecoration: 'none' }}>Read ↗</a>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+      {visible.includes('quotes') && quotes.length > 0 && (
+        <section id="quotes" style={{ padding: '52px 48px', borderBottom: `1px solid ${C.border}` }}>
+          <SHead title="Quotes" />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(260px,1fr))', gap: 16 }}>
+            {quotes.map((q, i) => (
+              <div key={q.id||i} style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 14, padding: '20px 22px' }}>
+                <p style={{ fontSize: 15, color: C.head, lineHeight: 1.55, fontStyle: 'italic', marginBottom: 10 }}>"{q.text}"</p>
+                {q.author && <cite style={{ fontFamily: mono, fontSize: 10, color: C.mute, fontStyle: 'normal' }}>— {q.author}</cite>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+      {customSections.filter(cs => visible.includes(cs.section_key)).map(cs => (
+        <section key={cs.id} id={cs.section_key} style={{ padding: '52px 48px', borderBottom: `1px solid ${C.border}` }}>
+          <SHead title={cs.section_label} />
+          {cs.content && <p style={{ fontSize: 14, color: C.text, lineHeight: 1.8, maxWidth: 700 }}>{cs.content}</p>}
+          {Array.isArray(cs.items) && cs.items.map((item, i) => (
+            <div key={i} style={{ fontSize: 13, color: C.text, padding: '8px 0', borderBottom: `1px solid ${C.border}` }}>{typeof item==='string' ? item : JSON.stringify(item)}</div>
+          ))}
+        </section>
+      ))}
 
       <footer style={{ padding: '24px 48px', borderTop: `1px solid ${C.border}`, textAlign: 'center' }}>
         <p style={{ fontFamily: mono, fontSize: 11, color: C.mute }}>© {new Date().getFullYear()} {name}</p>

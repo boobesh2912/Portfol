@@ -33,6 +33,7 @@ function TSection({ id, title, children, sStyle }) {
 export default function TerminalTemplate({
   profile, skills = [], projects = [], socialLinks = [], hiddenSections = [], sectionOrder = [],
   experiences = [], educations = [], certifications = [], services = [], testimonials = [],
+  books = [], publications = [], quotes = [], customSections = [],
   sectionSettings = {},
 }) {
   const visible = (sectionOrder.length ? sectionOrder : ['hero', 'about', 'skills', 'projects', 'contact']).filter(s => !hiddenSections.includes(s))
@@ -235,6 +236,59 @@ export default function TerminalTemplate({
           </div>
         </TSection>
       )}
+
+      {visible.includes('books') && books.length > 0 && (
+        <section id="books" style={{ padding: '44px 52px', borderBottom: `1px solid ${C.border}` }}>
+          <div style={{ fontFamily: mono, fontSize: 10, color: C.green, letterSpacing: '.18em', textTransform: 'uppercase', marginBottom: 20 }}>$ cat books.txt</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {books.map((b, i) => (
+              <div key={b.id||i} style={{ borderLeft: `2px solid ${C.border}`, paddingLeft: 16 }}>
+                <span style={{ color: C.head, fontFamily: mono, fontSize: 13 }}>{b.title}</span>
+                {b.author && <span style={{ color: C.mute, fontFamily: mono, fontSize: 11 }}> — {b.author}{b.year ? `, ${b.year}` : ''}</span>}
+                {b.notes && <div style={{ color: C.text, fontSize: 12, marginTop: 4 }}>{b.notes}</div>}
+                {b.url && <a href={b.url} target="_blank" rel="noopener noreferrer" style={{ color: C.green, fontFamily: mono, fontSize: 10, textDecoration: 'none' }}>→ view</a>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+      {visible.includes('publications') && publications.length > 0 && (
+        <section id="publications" style={{ padding: '44px 52px', borderBottom: `1px solid ${C.border}` }}>
+          <div style={{ fontFamily: mono, fontSize: 10, color: C.green, letterSpacing: '.18em', textTransform: 'uppercase', marginBottom: 20 }}>$ ls publications/</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {publications.map((p, i) => (
+              <div key={p.id||i}>
+                <div style={{ color: C.head, fontFamily: mono, fontSize: 14, fontWeight: 700 }}>{p.title}</div>
+                {(p.publisher||p.year) && <div style={{ color: C.green, fontFamily: mono, fontSize: 10, marginBottom: 4 }}>{[p.publisher,p.year].filter(Boolean).join(' · ')}</div>}
+                {p.description && <div style={{ color: C.text, fontSize: 12, lineHeight: 1.6 }}>{p.description}</div>}
+                {p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" style={{ color: C.green, fontFamily: mono, fontSize: 10, textDecoration: 'none' }}>→ read</a>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+      {visible.includes('quotes') && quotes.length > 0 && (
+        <section id="quotes" style={{ padding: '44px 52px', borderBottom: `1px solid ${C.border}` }}>
+          <div style={{ fontFamily: mono, fontSize: 10, color: C.green, letterSpacing: '.18em', textTransform: 'uppercase', marginBottom: 20 }}>$ echo quotes</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {quotes.map((q, i) => (
+              <div key={q.id||i} style={{ borderLeft: `2px solid ${C.green}`, paddingLeft: 16 }}>
+                <p style={{ color: C.head, fontFamily: mono, fontSize: 14, fontStyle: 'italic', marginBottom: 4 }}>"{q.text}"</p>
+                {q.author && <span style={{ color: C.mute, fontFamily: mono, fontSize: 10 }}>— {q.author}</span>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+      {customSections.filter(cs => visible.includes(cs.section_key)).map(cs => (
+        <section key={cs.id} id={cs.section_key} style={{ padding: '44px 52px', borderBottom: `1px solid ${C.border}` }}>
+          <div style={{ fontFamily: mono, fontSize: 10, color: C.green, letterSpacing: '.18em', textTransform: 'uppercase', marginBottom: 20 }}>$ cat {cs.section_key}.txt</div>
+          {cs.content && <p style={{ color: C.text, fontSize: 13, lineHeight: 1.8 }}>{cs.content}</p>}
+          {Array.isArray(cs.items) && cs.items.map((item, i) => (
+            <div key={i} style={{ color: C.text, fontFamily: mono, fontSize: 12, padding: '4px 0' }}>→ {typeof item==='string' ? item : JSON.stringify(item)}</div>
+          ))}
+        </section>
+      ))}
 
       <div style={{ padding: '24px 52px', borderTop: `1px solid ${C.border}`, display: 'flex', gap: 8, alignItems: 'center' }}>
         <span style={{ color: C.green }}>$</span>

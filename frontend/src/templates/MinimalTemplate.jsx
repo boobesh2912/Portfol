@@ -27,6 +27,7 @@ function SideLink({ href, children }) {
 export default function MinimalTemplate({
   profile, skills = [], projects = [], socialLinks = [], hiddenSections = [], sectionOrder = [],
   experiences = [], educations = [], certifications = [], services = [], testimonials = [],
+  books = [], publications = [], quotes = [], customSections = [],
   sectionSettings = {},
 }) {
   const visible = (sectionOrder.length ? sectionOrder : ['hero', 'about', 'skills', 'projects', 'contact']).filter(s => !hiddenSections.includes(s))
@@ -230,6 +231,58 @@ export default function MinimalTemplate({
             </div>
           </section>
         )}
+        {visible.includes('books') && books.length > 0 && (
+          <section id="books" style={{ padding: '44px 48px', borderBottom: `1px solid ${C.border}` }}>
+            <SLabel>Books</SLabel>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(180px,1fr))', gap: 12 }}>
+              {books.map((b, i) => (
+                <div key={b.id||i} style={{ border: `1px solid ${C.border}`, borderRadius: 8, padding: '14px 16px' }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: C.head, marginBottom: 3 }}>{b.title}</div>
+                  {b.author && <div style={{ fontFamily: mono, fontSize: 10, color: C.mute, marginBottom: 4 }}>{b.author}{b.year ? ` · ${b.year}` : ''}</div>}
+                  {b.notes && <p style={{ fontSize: 12, color: C.text, lineHeight: 1.6 }}>{b.notes}</p>}
+                  {b.url && <a href={b.url} target="_blank" rel="noopener noreferrer" style={{ fontFamily: mono, fontSize: 10, color: C.head, textDecoration: 'none' }}>View ↗</a>}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+        {visible.includes('publications') && publications.length > 0 && (
+          <section id="publications" style={{ padding: '44px 48px', borderBottom: `1px solid ${C.border}` }}>
+            <SLabel>Publications</SLabel>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {publications.map((p, i) => (
+                <div key={p.id||i} style={{ borderBottom: i < publications.length-1 ? `1px solid ${C.border}` : 'none', paddingBottom: 14 }}>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: C.head, marginBottom: 3 }}>{p.title}</div>
+                  {(p.publisher||p.year) && <div style={{ fontFamily: mono, fontSize: 10, color: C.mute, marginBottom: 4 }}>{[p.publisher,p.year].filter(Boolean).join(' · ')}</div>}
+                  {p.description && <p style={{ fontSize: 13, color: C.text, lineHeight: 1.7 }}>{p.description}</p>}
+                  {p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" style={{ fontFamily: mono, fontSize: 10, color: C.head, textDecoration: 'none' }}>Read ↗</a>}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+        {visible.includes('quotes') && quotes.length > 0 && (
+          <section id="quotes" style={{ padding: '44px 48px', borderBottom: `1px solid ${C.border}` }}>
+            <SLabel>Quotes</SLabel>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              {quotes.map((q, i) => (
+                <blockquote key={q.id||i} style={{ margin: 0, borderLeft: `2px solid ${C.border}`, paddingLeft: 18 }}>
+                  <p style={{ fontSize: 16, color: C.head, lineHeight: 1.55, fontStyle: 'italic', marginBottom: 4 }}>"{q.text}"</p>
+                  {q.author && <cite style={{ fontFamily: mono, fontSize: 10, color: C.mute, fontStyle: 'normal' }}>— {q.author}</cite>}
+                </blockquote>
+              ))}
+            </div>
+          </section>
+        )}
+        {customSections.filter(cs => visible.includes(cs.section_key)).map(cs => (
+          <section key={cs.id} id={cs.section_key} style={{ padding: '44px 48px', borderBottom: `1px solid ${C.border}` }}>
+            <SLabel>{cs.section_label}</SLabel>
+            {cs.content && <p style={{ fontSize: 14, color: C.text, lineHeight: 1.8, maxWidth: 680 }}>{cs.content}</p>}
+            {Array.isArray(cs.items) && cs.items.map((item, i) => (
+              <div key={i} style={{ fontSize: 13, color: C.text, padding: '6px 0', borderBottom: `1px solid ${C.border}` }}>{typeof item==='string' ? item : JSON.stringify(item)}</div>
+            ))}
+          </section>
+        ))}
       </main>
     </div>
   )

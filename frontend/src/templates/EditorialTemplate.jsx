@@ -22,6 +22,7 @@ function SectionLabel({ children }) {
 export default function EditorialTemplate({
   profile, skills = [], projects = [], socialLinks = [], hiddenSections = [], sectionOrder = [],
   experiences = [], educations = [], certifications = [], services = [], testimonials = [],
+  books = [], publications = [], quotes = [], customSections = [],
   sectionSettings = {},
 }) {
   const visible = (sectionOrder.length ? sectionOrder : ['hero', 'about', 'skills', 'projects', 'contact']).filter(s => !hiddenSections.includes(s))
@@ -315,6 +316,70 @@ export default function EditorialTemplate({
             </div>
           </section>
         )}
+        {visible.includes('books') && books.length > 0 && (
+          <section id="books" style={{ padding: '52px 52px', borderBottom: `1px solid ${C.border}`, ...sStyle('books') }}>
+            <SectionLabel>Books</SectionLabel>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px,1fr))', gap: 14 }}>
+              {books.map((b, i) => (
+                <div key={b.id || i} style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10, padding: '16px 18px' }}>
+                  <div style={{ fontFamily: serif, fontSize: 15, fontWeight: 600, color: C.head, marginBottom: 4 }}>{b.title}</div>
+                  {b.author && <div style={{ fontFamily: mono, fontSize: 10, color: C.accent, marginBottom: 4 }}>{b.author}{b.year ? ` · ${b.year}` : ''}</div>}
+                  {b.notes && <p style={{ fontSize: 12, color: C.textMid, lineHeight: 1.6, marginBottom: 6, fontWeight: 300 }}>{b.notes}</p>}
+                  {b.url && <a href={b.url} target="_blank" rel="noopener noreferrer" style={{ fontFamily: mono, fontSize: 10, color: C.accent, textDecoration: 'none' }}>View ↗</a>}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {visible.includes('publications') && publications.length > 0 && (
+          <section id="publications" style={{ padding: '52px 52px', borderBottom: `1px solid ${C.border}`, background: C.bgWarm, ...sStyle('publications') }}>
+            <SectionLabel>Publications</SectionLabel>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {publications.map((p, i) => (
+                <div key={p.id || i} style={{ display: 'grid', gridTemplateColumns: '160px 1fr', gap: 24, paddingBottom: 16, borderBottom: i < publications.length - 1 ? `1px solid ${C.border}` : 'none' }}>
+                  <div style={{ fontFamily: mono, fontSize: 10, color: C.mute }}>{p.year}{p.publisher ? `\n${p.publisher}` : ''}</div>
+                  <div>
+                    <div style={{ fontFamily: serif, fontSize: 17, fontWeight: 600, color: C.head, marginBottom: 4 }}>{p.title}</div>
+                    {p.description && <p style={{ fontSize: 13, color: C.textMid, lineHeight: 1.7, fontWeight: 300, marginBottom: 6 }}>{p.description}</p>}
+                    {p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" style={{ fontFamily: mono, fontSize: 10, color: C.accent, textDecoration: 'none' }}>Read ↗</a>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {visible.includes('quotes') && quotes.length > 0 && (
+          <section id="quotes" style={{ padding: '52px 52px', borderBottom: `1px solid ${C.border}`, ...sStyle('quotes') }}>
+            <SectionLabel>Quotes</SectionLabel>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {quotes.map((q, i) => (
+                <blockquote key={q.id || i} style={{ margin: 0, borderLeft: `3px solid ${C.accentBdr}`, paddingLeft: 20 }}>
+                  <p style={{ fontFamily: serif, fontSize: 20, fontStyle: 'italic', color: C.head, lineHeight: 1.5, marginBottom: 6 }}>"{q.text}"</p>
+                  {q.author && <cite style={{ fontFamily: mono, fontSize: 10, color: C.mute, fontStyle: 'normal' }}>— {q.author}</cite>}
+                </blockquote>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {customSections.filter(cs => visible.includes(cs.section_key)).map(cs => (
+          <section key={cs.id} id={cs.section_key} style={{ padding: '52px 52px', borderBottom: `1px solid ${C.border}`, ...sStyle(cs.section_key) }}>
+            <SectionLabel>{cs.section_label}</SectionLabel>
+            {cs.content && <p style={{ fontSize: 14, color: C.textMid, lineHeight: 1.8, fontWeight: 300, maxWidth: 680 }}>{cs.content}</p>}
+            {Array.isArray(cs.items) && cs.items.length > 0 && (
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8, marginTop: cs.content ? 16 : 0 }}>
+                {cs.items.map((item, i) => (
+                  <li key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 14, color: C.textMid }}>
+                    <span style={{ color: C.accent, flexShrink: 0 }}>✦</span>{typeof item === 'string' ? item : JSON.stringify(item)}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        ))}
+
       </main>
     </div>
   )
