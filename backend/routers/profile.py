@@ -25,6 +25,11 @@ class ProfileUpdate(BaseModel):
     is_public: Optional[bool] = None
     custom_domain: Optional[str] = None
     hidden_sections: Optional[list] = None
+    # Contact fields editable from the editor
+    email_public: Optional[str] = None
+    phone: Optional[str] = None
+    location: Optional[str] = None
+    available_for: Optional[list] = None
 
 
 class UsernameUpdate(BaseModel):

@@ -145,7 +145,7 @@ export default function EditorPage() {
         }}>
           Your portfolio is live!{' '}
           <a href={`/${profile.username}`} target="_blank" rel="noreferrer" style={{ color: 'var(--accent-hover)', textDecoration: 'underline' }}>
-            portfol.me/{profile.username}
+            {window.location.host}/{profile.username}
           </a>
         </div>
       )}
@@ -245,16 +245,16 @@ export default function EditorPage() {
         <div style={{ flex: 1 }} />
 
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
-          <div style={{ display: 'flex', background: 'var(--bg-warm)', borderRadius: 7, padding: 2, gap: 2 }}>
-            {['form', 'preview'].map(tab => (
-              <button key={tab} onClick={() => setMobileTab(tab)} style={{
-                padding: '4px 11px', borderRadius: 5, fontFamily: 'var(--font-mono)', fontSize: 10, cursor: 'pointer',
-                border: 'none', fontWeight: 500, letterSpacing: '.06em',
-                background: mobileTab === tab ? 'var(--bg-card)' : 'transparent',
-                color: mobileTab === tab ? 'var(--text-heading)' : 'var(--text-muted)',
-                boxShadow: mobileTab === tab ? 'var(--shadow)' : 'none',
+          <div style={{ display: 'flex', borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border)' }}>
+            {[{ id: 'form', label: '✏ EDIT' }, { id: 'preview', label: '◎ PREVIEW' }].map(tab => (
+              <button key={tab.id} onClick={() => setMobileTab(tab.id)} style={{
+                padding: '6px 14px', fontFamily: 'var(--font-mono)', fontSize: 10.5, cursor: 'pointer',
+                border: 'none', fontWeight: 700, letterSpacing: '.06em',
+                background: mobileTab === tab.id ? 'var(--accent)' : 'var(--bg-card)',
+                color: mobileTab === tab.id ? '#fff' : 'var(--text-muted)',
+                transition: 'all .15s',
               }}>
-                {tab === 'form' ? 'EDIT' : 'PREVIEW'}
+                {tab.label}
               </button>
             ))}
           </div>
@@ -344,25 +344,20 @@ export default function EditorPage() {
           )}
         </div>
 
-        {/* CENTER: live preview */}
+        {/* CENTER: live preview — full width, no box */}
         <div style={{
           flex: 1, overflow: 'auto', background: 'var(--bg-warm)',
-          display: mobileTab === 'preview' || window.innerWidth > 900 ? 'flex' : 'none',
-          alignItems: 'flex-start', justifyContent: 'center', padding: 24,
+          display: mobileTab === 'preview' || window.innerWidth > 900 ? 'block' : 'none',
         }}>
-          <div style={{
-            width: '100%', maxWidth: 740, background: '#fff', borderRadius: 12,
-            overflow: 'hidden', boxShadow: '0 8px 40px rgba(0,0,0,.1)', minHeight: 500,
-            border: '1px solid var(--border)',
-          }}>
-            <div style={{ background: 'var(--bg-card)', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 6, borderBottom: '1px solid var(--border)' }}>
-              {['#ef4444','#f59e0b','#22c55e'].map(c => <div key={c} style={{ width: 8, height: 8, borderRadius: '50%', background: c }} />)}
-              <div style={{ flex: 1, background: 'var(--bg-warm)', borderRadius: 4, padding: '3px 10px', fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-muted)', marginLeft: 8, maxWidth: 200 }}>
-                portfol.me/{profile?.username}
-              </div>
+          {/* Browser chrome bar */}
+          <div style={{ background: 'var(--bg-card)', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 6, borderBottom: '1px solid var(--border)', position: 'sticky', top: 0, zIndex: 10 }}>
+            {['#ef4444','#f59e0b','#22c55e'].map(c => <div key={c} style={{ width: 8, height: 8, borderRadius: '50%', background: c }} />)}
+            <div style={{ flex: 1, background: 'var(--bg-warm)', borderRadius: 4, padding: '3px 10px', fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-muted)', marginLeft: 8, maxWidth: 260 }}>
+              {window.location.host}/{profile?.username}
             </div>
-            <PortfolioPreview template={currentTemplate} sectionSettings={sectionSettings} />
+            <a href={`/${profile?.username}`} target="_blank" rel="noreferrer" style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--accent)', textDecoration: 'none', letterSpacing: '.05em' }}>OPEN ↗</a>
           </div>
+          <PortfolioPreview template={currentTemplate} sectionSettings={sectionSettings} />
         </div>
 
         {/* RIGHT: edit form */}

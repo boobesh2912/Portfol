@@ -6,7 +6,7 @@ import { createCheckout, openPortal } from '../api/billing'
 import { useNavigate } from 'react-router-dom'
 import { useClerk } from '@clerk/react'
 
-const SITE_BASE = 'portfol.me'
+const SITE_BASE = import.meta.env.VITE_SITE_BASE || window.location.host
 
 export default function SettingsPage() {
   const { profile, fetchProfile, updateProfile: updateLocalProfile } = useProfileStore()
@@ -198,7 +198,7 @@ export default function SettingsPage() {
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text-muted)' }}>{SITE_BASE}/</span>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--accent)' }}>{profile?.username || '—'}</span>
           <a
-            href={`https://${SITE_BASE}/${profile?.username}`}
+            href={`/${profile?.username}`}
             target="_blank"
             rel="noreferrer"
             style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--accent)', textDecoration: 'none', border: '1px solid var(--accent)', borderRadius: 6, padding: '3px 10px' }}

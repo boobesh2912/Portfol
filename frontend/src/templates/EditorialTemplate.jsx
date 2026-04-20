@@ -267,6 +267,30 @@ export default function EditorialTemplate({
             </h2>
             <p style={{ color: C.textMid, marginBottom: 28, fontSize: 14, fontWeight: 300 }}>Open to freelance, full-time opportunities, and collaborations.</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 380 }}>
+              {profile?.email_public && (
+                <a href={`mailto:${profile.email_public}`} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 13, color: C.head, fontWeight: 500, textDecoration: 'none' }}>
+                  <div style={{ width: 30, height: 30, borderRadius: 7, background: C.tag, border: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <span style={{ fontFamily: mono, fontSize: 9, color: C.mute }}>@</span>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 500 }}>Email</div>
+                    <div style={{ fontFamily: mono, fontSize: 10, color: C.mute, marginTop: 1 }}>{profile.email_public}</div>
+                  </div>
+                  <span style={{ marginLeft: 'auto', color: C.accent, fontWeight: 700 }}>→</span>
+                </a>
+              )}
+              {profile?.phone && (
+                <a href={`tel:${profile.phone}`} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 13, color: C.head, fontWeight: 500, textDecoration: 'none' }}>
+                  <div style={{ width: 30, height: 30, borderRadius: 7, background: C.tag, border: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <span style={{ fontFamily: mono, fontSize: 9, color: C.mute }}>☎</span>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 500 }}>Phone</div>
+                    <div style={{ fontFamily: mono, fontSize: 10, color: C.mute, marginTop: 1 }}>{profile.phone}</div>
+                  </div>
+                  <span style={{ marginLeft: 'auto', color: C.accent, fontWeight: 700 }}>→</span>
+                </a>
+              )}
               {Object.entries(socials).filter(([, v]) => v).map(([platform, url]) => (
                 <a key={platform} href={url} target="_blank" rel="noopener noreferrer" style={{
                   display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px', background: C.bg,
@@ -285,6 +309,9 @@ export default function EditorialTemplate({
                   <span style={{ marginLeft: 'auto', color: C.accent, fontWeight: 700 }}>→</span>
                 </a>
               ))}
+              {!profile?.email_public && !profile?.phone && Object.values(socials).every(v => !v) && (
+                <p style={{ fontFamily: mono, fontSize: 11, color: C.mute }}>Add your email, phone, or social links in the editor to show contact options here.</p>
+              )}
             </div>
           </section>
         )}

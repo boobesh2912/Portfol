@@ -1,7 +1,7 @@
-import { useState, Suspense, lazy } from 'react'
+import { useState, useRef, Suspense, lazy } from 'react'
 import { useProfileStore } from '../../store/profileStore'
 import { useEditorStore } from '../../store/editorStore'
-import { updateProfile, uploadAvatar } from '../../api/profile'
+import { updateProfile, uploadAvatar, checkUsername, updateUsername } from '../../api/profile'
 import { upsertSkills, upsertSocialLinks } from '../../api/skills'
 import { createProject } from '../../api/projects'
 
@@ -55,7 +55,7 @@ function PreviewTemplate({ template, data }) {
   }
 }
 
-const STEPS = ['Template', 'Identity', 'About', 'Skills', 'Projects', 'Socials']
+const STEPS = ['Template', 'Identity', 'About', 'Skills', 'Projects', 'Socials', 'Your URL']
 
 const TAGLINE_EXAMPLES = [
   'Full Stack Developer · Open to work',
@@ -122,6 +122,11 @@ export default function OnboardingFlow({ onComplete }) {
   const [openCat, setOpenCat] = useState('Programming Languages')
   const [projects, setProjects] = useState([{ title: '', description: '', url: '' }])
   const [socials, setSocials] = useState({ github: '', linkedin: '', twitter: '', website: '' })
+  // Username step
+  const [usernameInput, setUsernameInput] = useState(profile?.username || '')
+  const [usernameStatus, setUsernameStatus] = useState('same')
+  const [usernameSuggestions, setUsernameSuggestions] = useState([])
+  const usernameTimer = useRef(null)
 
   const step = onboardingStep
 
@@ -143,6 +148,23 @@ export default function OnboardingFlow({ onComplete }) {
     setCustomSkillInput('')
   }
 
+  const handleUsernameCheck = (val) => {
+    setUsernameInput(val)
+    setUsernameStatus('checking')
+    setUsernameSuggestions([])
+    clearTimeout(usernameTimer.current)
+    if (!val.trim()) { setUsernameStatus(null); return }
+    if (val === profile?.username) { setUsernameStatus('same'); return }
+    usernameTimer.current = setTimeout(async () => {
+      try {
+        const res = await checkUsername(val)
+        if (res.error) { setUsernameStatus('invalid') }
+        else if (res.available) { setUsernameStatus('available') }
+        else { setUsernameStatus('taken'); setUsernameSuggestions(res.suggestions || []) }
+      } catch { setUsernameStatus(null) }
+    }, 500)
+  }
+
   // Save everything at the last step — no per-step API calls
   const handleNext = async () => {
     if (step < STEPS.length - 1) {
@@ -157,6 +179,7 @@ export default function OnboardingFlow({ onComplete }) {
         full_name: preview.full_name,
         tagline: preview.tagline,
         bio: preview.bio,
+        is_public: true,
       })
       if (avatarFile) await uploadAvatar(avatarFile)
       if (selectedSkills.length) await upsertSkills(selectedSkills)
@@ -165,6 +188,10 @@ export default function OnboardingFlow({ onComplete }) {
       }
       const links = Object.entries(socials).filter(([, v]) => v).map(([platform, url]) => ({ platform, url }))
       if (links.length) await upsertSocialLinks(links)
+      // Save username if changed and valid
+      if (usernameInput && usernameInput !== profile?.username && (usernameStatus === 'available' || usernameStatus === 'same')) {
+        try { await updateUsername(usernameInput.trim().toLowerCase()) } catch {}
+      }
       await fetchProfile()
       onComplete()
     } catch (e) {
@@ -402,6 +429,48 @@ export default function OnboardingFlow({ onComplete }) {
                   </div>
                 ))}
               </div>
+            </>
+          )}
+
+          {step === 6 && (
+            <>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 600, color: 'var(--text-heading)', marginBottom: 6 }}>Your portfolio URL</h2>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20 }}>This is the link you share with the world. You can change it anytime.</p>
+              <div style={{ background: 'var(--bg-warm)', border: '1px solid var(--border)', borderRadius: 10, padding: '14px 16px', marginBottom: 20, fontFamily: 'var(--font-mono)', fontSize: 13 }}>
+                <span style={{ color: 'var(--text-muted)' }}>{window.location.host}/</span>
+                <span style={{ color: 'var(--accent)', fontWeight: 700 }}>{usernameInput || profile?.username}</span>
+              </div>
+              <Field label="Choose your username">
+                <div style={{ position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-muted)', pointerEvents: 'none' }}>
+                    {window.location.host}/
+                  </span>
+                  <input
+                    value={usernameInput}
+                    onChange={e => handleUsernameCheck(e.target.value)}
+                    style={{ ...IS, paddingLeft: `${window.location.host.length * 7.5 + 20}px`, fontFamily: 'var(--font-mono)' }}
+                    placeholder="your-username"
+                    spellCheck={false}
+                    autoComplete="off"
+                  />
+                </div>
+                {usernameStatus && (
+                  <div style={{ marginTop: 6, fontSize: 12, fontFamily: 'var(--font-mono)', color: { available: '#22c55e', taken: '#ef4444', invalid: '#ef4444', checking: '#9ca3af', same: '#9ca3af' }[usernameStatus] || 'transparent' }}>
+                    {{ available: '✓ Available — great choice!', taken: '✗ Username is taken', invalid: '✗ Invalid format', checking: 'Checking…', same: '✓ Current username' }[usernameStatus]}
+                  </div>
+                )}
+                {usernameStatus === 'taken' && usernameSuggestions.length > 0 && (
+                  <div style={{ marginTop: 10 }}>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6, fontFamily: 'var(--font-mono)' }}>TRY ONE OF THESE:</div>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {usernameSuggestions.map(s => (
+                        <button key={s} onClick={() => handleUsernameCheck(s)} style={{ fontFamily: 'var(--font-mono)', fontSize: 12, padding: '4px 12px', borderRadius: 6, border: '1px solid var(--accent)', background: 'rgba(200,136,74,.08)', color: 'var(--accent)', cursor: 'pointer' }}>{s}</button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div style={{ marginTop: 8, fontSize: 11, color: 'var(--text-muted)' }}>Lowercase letters, numbers, hyphens, underscores. 3–30 chars.</div>
+              </Field>
             </>
           )}
 
