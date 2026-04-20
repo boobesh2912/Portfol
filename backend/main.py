@@ -11,14 +11,17 @@ app = FastAPI(title="Portfol API", version="1.0.0")
 
 frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:5173")
 
-# Support comma-separated FRONTEND_URL list for multiple origins (e.g. "https://a.netlify.app,https://yourdomain.com")
-_allowed_origins = [o.strip() for o in frontend_url.split(",") if o.strip()]
-_allowed_origins += ["http://localhost:5173", "http://localhost:3000"]
+# Support comma-separated FRONTEND_URL list
+_explicit = [o.strip() for o in frontend_url.split(",") if o.strip()]
+_allowed_origins = list(set(_explicit + ["http://localhost:5173", "http://localhost:3000"]))
+
+# If ALLOW_ALL_ORIGINS=true is set, use wildcard (useful during initial deploy)
+_allow_all = os.environ.get("ALLOW_ALL_ORIGINS", "false").lower() == "true"
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=list(set(_allowed_origins)),
-    allow_credentials=True,
+    allow_origins=["*"] if _allow_all else _allowed_origins,
+    allow_credentials=False if _allow_all else True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
