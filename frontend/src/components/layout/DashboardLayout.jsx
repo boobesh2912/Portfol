@@ -1,20 +1,26 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth, useUser, useClerk } from '@clerk/react'
 import { useProfileStore } from '../../store/profileStore'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { setTokenGetter } from '../../api/api'
 
 export default function DashboardLayout() {
   const { getToken } = useAuth()
   const { user } = useUser()
   const { signOut } = useClerk()
-  const { fetchProfile, profile } = useProfileStore()
+  const { fetchProfile, profile, loading, error } = useProfileStore()
   const navigate = useNavigate()
+  const [slowLoad, setSlowLoad] = useState(false)
 
-  // Wire Clerk token into the axios interceptor
   useEffect(() => {
     setTokenGetter(getToken)
-    fetchProfile()
+    // Show "waking up" message if load takes > 4s (Render cold start)
+    const slowTimer = setTimeout(() => setSlowLoad(true), 4000)
+    fetchProfile().finally(() => {
+      clearTimeout(slowTimer)
+      setSlowLoad(false)
+    })
+    return () => clearTimeout(slowTimer)
   }, [])
 
   const handleSignOut = async () => {

@@ -115,8 +115,11 @@ export default function EditorPage() {
   }
 
   if (!profile) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '.1em', background: 'var(--bg)' }}>
-      LOADING…
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '.1em', background: 'var(--bg)', gap: 12 }}>
+      <div>LOADING…</div>
+      <div style={{ fontSize: 10, color: 'var(--text-muted)', opacity: 0.6, maxWidth: 260, textAlign: 'center', lineHeight: 1.7 }}>
+        First load may take ~15s while the server wakes up.
+      </div>
     </div>
   )
 

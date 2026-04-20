@@ -21,27 +21,37 @@ export const useProfileStore = create((set) => ({
 
   fetchProfile: async () => {
     set({ loading: true, error: null })
-    try {
-      const data = await getMyProfile()
-      set({
-        profile: data.profile,
-        skills: data.skills || [],
-        projects: data.projects || [],
-        socialLinks: data.social_links || [],
-        sectionOrder: data.section_order || ['hero', 'about', 'skills', 'projects', 'contact'],
-        experiences: data.experiences || [],
-        educations: data.educations || [],
-        certifications: data.certifications || [],
-        services: data.services || [],
-        testimonials: data.testimonials || [],
-        books: data.books || [],
-        publications: data.publications || [],
-        quotes: data.quotes || [],
-        customSections: data.custom_sections || [],
-        loading: false,
-      })
-    } catch (err) {
-      set({ error: err.message, loading: false })
+    // Retry up to 3 times — handles Render cold-start timeouts
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const data = await getMyProfile()
+        set({
+          profile: data.profile,
+          skills: data.skills || [],
+          projects: data.projects || [],
+          socialLinks: data.social_links || [],
+          sectionOrder: data.section_order || ['hero', 'about', 'skills', 'projects', 'contact'],
+          experiences: data.experiences || [],
+          educations: data.educations || [],
+          certifications: data.certifications || [],
+          services: data.services || [],
+          testimonials: data.testimonials || [],
+          books: data.books || [],
+          publications: data.publications || [],
+          quotes: data.quotes || [],
+          customSections: data.custom_sections || [],
+          loading: false,
+          error: null,
+        })
+        return
+      } catch (err) {
+        if (attempt === 3) {
+          set({ error: err.message, loading: false })
+        } else {
+          // Wait 3s before retry
+          await new Promise(r => setTimeout(r, 3000))
+        }
+      }
     }
   },
 
