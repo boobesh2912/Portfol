@@ -1,13 +1,21 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 import os
 
 load_dotenv()
 
 from routers import profile, projects, sections, analytics, domain, billing, skills
 
-app = FastAPI(title="Portfol API", version="1.0.0")
+limiter = Limiter(key_func=get_remote_address, default_limits=[])
+
+app = FastAPI(title="Vizhva API", version="1.0.0")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:5173")
 
@@ -37,4 +45,4 @@ app.include_router(skills.router)
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "service": "portfol-api"}
+    return {"status": "ok", "service": "vizhva-api"}

@@ -1,12 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-import socket
+import dns.resolver
 from dependencies import get_current_user, get_supabase_client
-import os
 
 router = APIRouter(prefix="/api/domain", tags=["domain"])
 
-PORTFOL_CNAME_TARGET = "portfol.me"
+VIZHVA_CNAME_TARGET = "vizhva.me"
 
 
 class DomainConnect(BaseModel):
@@ -26,7 +25,7 @@ async def connect_domain(data: DomainConnect, user=Depends(get_current_user)):
         "dns_instructions": {
             "type": "CNAME",
             "name": domain,
-            "value": PORTFOL_CNAME_TARGET,
+            "value": VIZHVA_CNAME_TARGET,
             "ttl": 3600,
         },
         "message": "Add the CNAME record to your DNS provider, then verify.",
@@ -36,20 +35,23 @@ async def connect_domain(data: DomainConnect, user=Depends(get_current_user)):
 @router.get("/verify")
 async def verify_domain(user=Depends(get_current_user)):
     supabase = get_supabase_client()
-    profile = supabase.table("profiles").select("custom_domain, domain_verified").eq("id", user["sub"]).single().execute().data
+    profile = (
+        supabase.table("profiles")
+        .select("custom_domain, domain_verified")
+        .eq("id", user["sub"])
+        .single()
+        .execute()
+        .data
+    )
     if not profile or not profile.get("custom_domain"):
         raise HTTPException(status_code=400, detail="No custom domain set")
+
     domain = profile["custom_domain"]
-    verified = False
-    try:
-        resolved = socket.getaddrinfo(domain, None)
-        target_ips = {r[4][0] for r in resolved}
-        portfol_ips = {r[4][0] for r in socket.getaddrinfo(PORTFOL_CNAME_TARGET, None)}
-        verified = bool(target_ips & portfol_ips)
-    except Exception:
-        verified = False
+    verified = _verify_cname(domain)
+
     if verified:
         supabase.table("profiles").update({"domain_verified": True}).eq("id", user["sub"]).execute()
+
     return {"domain": domain, "verified": verified}
 
 
@@ -58,3 +60,25 @@ async def remove_domain(user=Depends(get_current_user)):
     supabase = get_supabase_client()
     supabase.table("profiles").update({"custom_domain": None, "domain_verified": False}).eq("id", user["sub"]).execute()
     return {"message": "Custom domain removed"}
+
+
+def _verify_cname(domain: str) -> bool:
+    """Return True if domain has a CNAME that resolves (directly or transitively)
+    to VIZHVA_CNAME_TARGET. Falls back to False on any DNS error."""
+    target = VIZHVA_CNAME_TARGET.rstrip(".").lower()
+    try:
+        resolver = dns.resolver.Resolver()
+        resolver.lifetime = 5  # seconds
+
+        # Walk the CNAME chain; dnspython's resolve() follows aliases automatically.
+        answers = resolver.resolve(domain, "CNAME")
+        for rdata in answers:
+            cname_value = str(rdata.target).rstrip(".").lower()
+            if cname_value == target or cname_value.endswith("." + target):
+                return True
+        return False
+    except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
+        # Domain has no CNAME record at all.
+        return False
+    except Exception:
+        return False

@@ -1,5 +1,5 @@
 -- ============================================================
--- Portfol — Initial Database Migration (Clerk Auth version)
+-- Vizhva — Initial Database Migration (Clerk Auth version)
 -- ============================================================
 -- Before running this migration, create two Storage buckets in
 -- your Supabase project dashboard:
