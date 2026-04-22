@@ -1,7 +1,7 @@
-import { useState, useRef, Suspense, lazy } from 'react'
+import { useState, useRef, useEffect, Suspense, lazy } from 'react'
 import { useProfileStore } from '../../store/profileStore'
 import { useEditorStore } from '../../store/editorStore'
-import { updateProfile, uploadAvatar, checkUsername, updateUsername } from '../../api/profile'
+import { updateProfile, uploadAvatar, checkUsername, updateUsername, suggestUsername } from '../../api/profile'
 import { upsertSkills, upsertSocialLinks } from '../../api/skills'
 import { createProject } from '../../api/projects'
 
@@ -11,15 +11,22 @@ const BoldTemplate      = lazy(() => import('../../templates/BoldTemplate'))
 const CardGridTemplate  = lazy(() => import('../../templates/CardGridTemplate'))
 const TerminalTemplate  = lazy(() => import('../../templates/TerminalTemplate'))
 const MagazineTemplate  = lazy(() => import('../../templates/MagazineTemplate'))
-const AnimeEditorialTemplate  = lazy(() => import('../../templates/AnimeEditorialTemplate'))  
+const AnimeEditorialTemplate  = lazy(() => import('../../templates/AnimeEditorialTemplate'))
+const GlassTemplate           = lazy(() => import('../../templates/GlassTemplate'))
+const TimelineTemplate        = lazy(() => import('../../templates/TimelineTemplate'))
+const NeonTemplate            = lazy(() => import('../../templates/NeonTemplate'))
+
 const TEMPLATES = [
-  { key: 'editorial', label: 'Editorial',  desc: 'Warm serif · amber · professional' },
-  { key: 'minimal',   label: 'Minimal',    desc: 'Clean white canvas · Georgia' },
-  { key: 'bold',      label: 'Bold',       desc: 'Dark · dramatic · big type' },
-  { key: 'cardgrid',  label: 'Card Grid',  desc: 'Light masonry · hover effects' },
-  { key: 'terminal',  label: 'Terminal',   desc: 'Green-on-dark · hacker style' },
-  { key: 'magazine',  label: 'Magazine',   desc: 'Numbered editorial · serif' },
-  { key: 'anime',     label: 'Anime Editorial',   desc: 'Soft pastel colors · playful' } ,    
+  { key: 'editorial', label: 'Editorial',       desc: 'Warm serif · amber · professional', pro: false },
+  { key: 'minimal',   label: 'Minimal',         desc: 'Clean white canvas · Georgia',      pro: false },
+  { key: 'bold',      label: 'Bold',            desc: 'Dark · dramatic · big type',        pro: false },
+  { key: 'cardgrid',  label: 'Card Grid',       desc: 'Light masonry · hover effects',     pro: false },
+  { key: 'terminal',  label: 'Terminal',        desc: 'Green-on-dark · hacker style',      pro: false },
+  { key: 'magazine',  label: 'Magazine',        desc: 'Numbered editorial · serif',        pro: false },
+  { key: 'anime',     label: 'Anime Editorial', desc: 'Soft pastel colors · playful',      pro: true  },
+  { key: 'glass',     label: 'Glass',           desc: 'Frosted glass · purple gradient',   pro: true  },
+  { key: 'timeline',  label: 'Timeline',        desc: 'Vertical CV timeline · clean',      pro: true  },
+  { key: 'neon',      label: 'Neon',            desc: 'Dark bg · electric glow effects',   pro: true  },
 ]
 
 // Skill categories with presets
@@ -52,6 +59,10 @@ function PreviewTemplate({ template, data }) {
     case 'cardgrid':  return <CardGridTemplate {...props} />
     case 'terminal':  return <TerminalTemplate {...props} />
     case 'magazine':  return <MagazineTemplate {...props} />
+    case 'anime':     return <AnimeEditorialTemplate {...props} />
+    case 'glass':     return <GlassTemplate {...props} />
+    case 'timeline':  return <TimelineTemplate {...props} />
+    case 'neon':      return <NeonTemplate {...props} />
     default:          return <MinimalTemplate {...props} />
   }
 }
@@ -114,6 +125,11 @@ export default function OnboardingFlow({ onComplete }) {
     _socials: [],
   })
 
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [suggestedUsername, setSuggestedUsername] = useState(profile?.username || '')
+  const suggestTimer = useRef(null)
+
   const update = (fields) => setPreview(p => ({ ...p, ...fields }))
 
   const [avatarFile, setAvatarFile] = useState(null)
@@ -128,6 +144,22 @@ export default function OnboardingFlow({ onComplete }) {
   const [usernameStatus, setUsernameStatus] = useState('same')
   const [usernameSuggestions, setUsernameSuggestions] = useState([])
   const usernameTimer = useRef(null)
+
+  useEffect(() => {
+    clearTimeout(suggestTimer.current)
+    if (!firstName && !lastName) return
+    suggestTimer.current = setTimeout(async () => {
+      try {
+        const res = await suggestUsername({ first_name: firstName, last_name: lastName, email: profile?.email || '' })
+        if (res.username) {
+          setSuggestedUsername(res.username)
+          setUsernameInput(res.username)
+          update({ username: res.username })
+        }
+      } catch { /* ignore suggest failure */ }
+    }, 400)
+    return () => clearTimeout(suggestTimer.current)
+  }, [firstName, lastName]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const step = onboardingStep
 
@@ -178,6 +210,7 @@ export default function OnboardingFlow({ onComplete }) {
       await updateProfile({
         template: preview.template,
         full_name: preview.full_name,
+        last_name: lastName || undefined,
         tagline: preview.tagline,
         bio: preview.bio,
         is_public: true,
@@ -191,7 +224,7 @@ export default function OnboardingFlow({ onComplete }) {
       if (links.length) await upsertSocialLinks(links)
       // Save username if changed and valid
       if (usernameInput && usernameInput !== profile?.username && (usernameStatus === 'available' || usernameStatus === 'same')) {
-        try { await updateUsername(usernameInput.trim().toLowerCase()) } catch {}
+        try { await updateUsername(usernameInput.trim().toLowerCase()) } catch { /* ignore */ }
       }
       await fetchProfile()
       onComplete()
@@ -244,20 +277,26 @@ export default function OnboardingFlow({ onComplete }) {
               <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 600, color: 'var(--text-heading)', marginBottom: 6 }}>Pick your template</h2>
               <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20 }}>You can change this anytime. Live preview on the right →</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {TEMPLATES.map(t => (
-                  <button key={t.key} onClick={() => update({ template: t.key })} style={{
-                    textAlign: 'left', padding: '12px 16px', borderRadius: 10, cursor: 'pointer',
-                    border: `1px solid ${preview.template === t.key ? 'rgba(200,136,74,.5)' : 'var(--border)'}`,
-                    background: preview.template === t.key ? 'rgba(200,136,74,.06)' : 'transparent',
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  }}>
-                    <div>
-                      <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 600, color: preview.template === t.key ? 'var(--accent)' : 'var(--text-heading)' }}>{t.label}</div>
-                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-muted)', marginTop: 2, letterSpacing: '.04em' }}>{t.desc}</div>
-                    </div>
-                    {preview.template === t.key && <span style={{ color: 'var(--accent)', fontSize: 16 }}>✦</span>}
-                  </button>
-                ))}
+                {TEMPLATES.map(t => {
+                  const isActive = preview.template === t.key
+                  return (
+                    <button key={t.key} onClick={() => update({ template: t.key })} style={{
+                      textAlign: 'left', padding: '12px 16px', borderRadius: 10, cursor: 'pointer',
+                      border: `1px solid ${isActive ? 'rgba(200,136,74,.5)' : 'var(--border)'}`,
+                      background: isActive ? 'rgba(200,136,74,.06)' : 'transparent',
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    }}>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 600, color: isActive ? 'var(--accent)' : 'var(--text-heading)' }}>{t.label}</span>
+                          {t.pro && <span style={{ fontSize: 9, fontFamily: 'var(--font-mono)', fontWeight: 700, letterSpacing: '.06em', color: '#92400e', background: '#fef3c7', border: '1px solid #f59e0b', borderRadius: 4, padding: '1px 5px' }}>PRO</span>}
+                        </div>
+                        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-muted)', marginTop: 2, letterSpacing: '.04em' }}>{t.desc}</div>
+                      </div>
+                      {isActive && <span style={{ color: 'var(--accent)', fontSize: 16 }}>✦</span>}
+                    </button>
+                  )
+                })}
               </div>
             </>
           )}
@@ -266,9 +305,20 @@ export default function OnboardingFlow({ onComplete }) {
             <>
               <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 600, color: 'var(--text-heading)', marginBottom: 6 }}>What's your name?</h2>
               <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20 }}>The headline of your portfolio.</p>
-              <Field label="Full name" hint="e.g. Boobesh AG">
-                <input value={preview.full_name} onChange={e => update({ full_name: e.target.value })} placeholder="Your full name" style={IS} />
-              </Field>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
+                <Field label="First name" hint="required">
+                  <input value={firstName} onChange={e => { setFirstName(e.target.value); update({ full_name: `${e.target.value} ${lastName}`.trim() }) }} placeholder="First" style={IS} />
+                </Field>
+                <Field label="Last name">
+                  <input value={lastName} onChange={e => { setLastName(e.target.value); update({ full_name: `${firstName} ${e.target.value}`.trim() }) }} placeholder="Last" style={IS} />
+                </Field>
+              </div>
+              {suggestedUsername && (
+                <div style={{ background: 'var(--bg-warm)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', marginBottom: 14, fontFamily: 'var(--font-mono)', fontSize: 12 }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Your portfolio URL: {window.location.host}/</span>
+                  <span style={{ color: 'var(--accent)', fontWeight: 700 }}>{suggestedUsername}</span>
+                </div>
+              )}
               <Field label="Tagline" hint="one-liner below your name">
                 <input value={preview.tagline} onChange={e => update({ tagline: e.target.value })} placeholder="Full Stack Developer · Open to work" style={{ ...IS, marginBottom: 8 }} />
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>

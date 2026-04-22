@@ -9,6 +9,9 @@ import CardGridTemplate from '../templates/CardGridTemplate'
 import TerminalTemplate from '../templates/TerminalTemplate'
 import MagazineTemplate from '../templates/MagazineTemplate'
 import AnimeEditorialTemplate from '../templates/AnimeEditorialTemplate'
+import GlassTemplate from '../templates/GlassTemplate'
+import TimelineTemplate from '../templates/TimelineTemplate'
+import NeonTemplate from '../templates/NeonTemplate'
 
 export default function PublicPortfolioPage() {
   const { username } = useParams()
@@ -89,7 +92,10 @@ export default function PublicPortfolioPage() {
     case 'cardgrid':  TemplateComponent = CardGridTemplate; break
     case 'terminal':  TemplateComponent = TerminalTemplate; break
     case 'magazine':  TemplateComponent = MagazineTemplate; break
-    case 'anime':     TemplateComponent = AnimeEditorialTemplate; break 
+    case 'anime':     TemplateComponent = AnimeEditorialTemplate; break
+    case 'glass':     TemplateComponent = GlassTemplate; break
+    case 'timeline':  TemplateComponent = TimelineTemplate; break
+    case 'neon':      TemplateComponent = NeonTemplate; break
     default:          TemplateComponent = MinimalTemplate
   }
 

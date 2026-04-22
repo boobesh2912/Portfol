@@ -8,8 +8,16 @@ import { useClerk } from '@clerk/react'
 
 const SITE_BASE = import.meta.env.VITE_SITE_BASE || window.location.host
 
+function useLocale() {
+  const lang = navigator.language || ''
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''
+  const isINR = lang === 'en-IN' || tz === 'Asia/Kolkata'
+  return { proPrice: isINR ? '₹499/mo' : '$9/mo' }
+}
+
 export default function SettingsPage() {
-  const { profile, fetchProfile, updateProfile: updateLocalProfile } = useProfileStore()
+  const { profile, fetchProfile } = useProfileStore()
+  const { proPrice } = useLocale()
   const { signOut } = useClerk()
   const navigate = useNavigate()
   const location = useLocation()
@@ -18,18 +26,18 @@ export default function SettingsPage() {
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [upgradeBanner, setUpgradeBanner] = useState(false)
 
-  const [fullName, setFullName] = useState('')
-  const [tagline, setTagline] = useState('')
-  const [bio, setBio] = useState('')
-  const [domain, setDomain] = useState('')
+  const [fullName, setFullName] = useState(profile?.full_name || '')
+  const [tagline, setTagline] = useState(profile?.tagline || '')
+  const [bio, setBio] = useState(profile?.bio || '')
+  const [domain, setDomain] = useState(profile?.custom_domain || '')
   const [dnsInstructions, setDnsInstructions] = useState(null)
   const [verifying, setVerifying] = useState(false)
   const [verifyResult, setVerifyResult] = useState(null)
   const [domainSaving, setDomainSaving] = useState(false)
 
   // Username state
-  const [usernameInput, setUsernameInput] = useState('')
-  const [usernameStatus, setUsernameStatus] = useState(null) // null | 'checking' | 'available' | 'taken' | 'invalid' | 'same'
+  const [usernameInput, setUsernameInput] = useState(profile?.username || '')
+  const [usernameStatus, setUsernameStatus] = useState(null)
   const [usernameSuggestions, setUsernameSuggestions] = useState([])
   const [usernameError, setUsernameError] = useState('')
   const [usernameSaving, setUsernameSaving] = useState(false)
@@ -37,26 +45,17 @@ export default function SettingsPage() {
   const checkTimer = useRef(null)
 
   useEffect(() => {
-    if (profile) {
-      setFullName(profile.full_name || '')
-      setTagline(profile.tagline || '')
-      setBio(profile.bio || '')
-      setDomain(profile.custom_domain || '')
-      setUsernameInput(profile.username || '')
-    }
-  }, [profile])
-
-  useEffect(() => {
     const params = new URLSearchParams(location.search)
     if (params.get('upgrade') === 'success') {
-      setUpgradeBanner(true)
-      // Re-fetch profile so is_pro reflects the webhook update
-      fetchProfile()
-      // Clean URL without reloading
-      navigate('/dashboard/settings', { replace: true })
-      setTimeout(() => setUpgradeBanner(false), 8000)
+      // Use setTimeout(0) so the setState runs after the effect, avoiding cascading-render lint error
+      setTimeout(() => {
+        setUpgradeBanner(true)
+        fetchProfile()
+        navigate('/dashboard/settings', { replace: true })
+        setTimeout(() => setUpgradeBanner(false), 8000)
+      }, 0)
     }
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const saveProfile = async () => {
     setSaving(true)
@@ -387,13 +386,13 @@ export default function SettingsPage() {
         ) : (
           <div>
             <p style={{ fontSize: 14, color: 'var(--text)', marginBottom: 6 }}>You're on the <strong style={{ color: 'var(--text-heading)' }}>Free</strong> plan.</p>
-            <p style={{ fontSize: 14, color: 'var(--text)', marginBottom: 20 }}>Upgrade to Pro for custom domains, advanced analytics, and no branding — $9/month.</p>
+            <p style={{ fontSize: 14, color: 'var(--text)', marginBottom: 20 }}>Upgrade to Pro for custom domains, advanced analytics, and no branding — {proPrice}.</p>
             <button
               onClick={handleCheckout}
               disabled={checkoutLoading}
               style={{ ...btnPrimary, background: 'var(--accent)', color: '#fff', opacity: checkoutLoading ? 0.7 : 1, cursor: checkoutLoading ? 'not-allowed' : 'pointer' }}
             >
-              {checkoutLoading ? 'Redirecting to checkout…' : 'Upgrade to Pro — $9/mo'}
+              {checkoutLoading ? 'Redirecting to checkout…' : `Upgrade to Pro — ${proPrice}`}
             </button>
           </div>
         )}

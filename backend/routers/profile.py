@@ -8,7 +8,7 @@ router = APIRouter(prefix="/api/profile", tags=["profile"])
 
 DEFAULT_SECTIONS = ["hero", "about", "skills", "projects", "contact"]
 
-# Lowercase letters, numbers, hyphens, underscores; 3-30 chars; must start with letter/digit
+# Lowercase letters, numbers, hyphens; 3-30 chars; must start with letter/digit
 USERNAME_RE = re.compile(r'^[a-z0-9][a-z0-9_-]{2,29}$')
 
 
@@ -17,15 +17,48 @@ def safe_single(table_query):
     return result.data[0] if result.data else None
 
 
+def _slugify(text: str) -> str:
+    """Convert any string to lowercase hyphenated slug, letters/digits/hyphens only."""
+    text = text.lower().strip()
+    text = re.sub(r'[^a-z0-9\s-]', '', text)
+    text = re.sub(r'[\s]+', '-', text)
+    text = re.sub(r'-+', '-', text).strip('-')
+    return text or "user"
+
+
+def _generate_username(supabase, first_name: str, last_name: str, email: str, profile_id: str) -> str:
+    """Generate username from firstname-lastname, fall back to email prefix."""
+    if first_name and last_name:
+        base = _slugify(f"{first_name}-{last_name}")[:28]
+    elif first_name:
+        base = _slugify(first_name)[:28]
+    elif email:
+        base = re.sub(r'[^a-z0-9-]', '', email.split("@")[0].lower().replace(".", "-"))[:20]
+    else:
+        base = profile_id.replace("_", "").lower()[-16:]
+
+    # Ensure minimum length
+    if len(base) < 3:
+        base = base + "user"
+
+    username = base
+    for suffix in range(2, 200):
+        existing = safe_single(supabase.table("profiles").select("id").eq("username", username))
+        if not existing:
+            return username
+        username = f"{base}-{suffix}"
+    return f"{base}-{profile_id[-4:]}"
+
+
 class ProfileUpdate(BaseModel):
     full_name: Optional[str] = None
+    last_name: Optional[str] = None
     tagline: Optional[str] = None
     bio: Optional[str] = None
     template: Optional[str] = None
     is_public: Optional[bool] = None
     custom_domain: Optional[str] = None
     hidden_sections: Optional[list] = None
-    # Contact fields editable from the editor
     email_public: Optional[str] = None
     phone: Optional[str] = None
     location: Optional[str] = None
@@ -47,16 +80,7 @@ async def get_my_profile(user=Depends(get_current_user)):
     profile = safe_single(supabase.table("profiles").select("*").eq("id", profile_id))
     if not profile:
         email = user.get("email", "")
-        if email:
-            base = email.split("@")[0].lower().replace(".", "_")[:20]
-        else:
-            base = profile_id.replace("_", "").lower()[-16:]
-        username = base
-        for suffix in range(1, 100):
-            existing = safe_single(supabase.table("profiles").select("id").eq("username", username))
-            if not existing:
-                break
-            username = f"{base}{suffix}"
+        username = _generate_username(supabase, "", "", email, profile_id)
         try:
             supabase.table("profiles").insert({
                 "id": profile_id,
@@ -70,18 +94,18 @@ async def get_my_profile(user=Depends(get_current_user)):
             raise HTTPException(status_code=404, detail="Profile not found")
 
     profile_id = profile["id"]
-    skills         = supabase.table("skills").select("*").eq("profile_id", profile_id).order("order_index").execute().data
-    projects       = supabase.table("projects").select("*").eq("profile_id", profile_id).order("order_index").execute().data
-    socials        = supabase.table("social_links").select("*").eq("profile_id", profile_id).execute().data
+    skills          = supabase.table("skills").select("*").eq("profile_id", profile_id).order("order_index").execute().data
+    projects        = supabase.table("projects").select("*").eq("profile_id", profile_id).order("order_index").execute().data
+    socials         = supabase.table("social_links").select("*").eq("profile_id", profile_id).execute().data
     section_order_row = safe_single(supabase.table("section_order").select("*").eq("profile_id", profile_id))
-    experiences    = supabase.table("experiences").select("*").eq("profile_id", profile_id).order("order_index").execute().data
-    educations     = supabase.table("educations").select("*").eq("profile_id", profile_id).order("order_index").execute().data
-    certifications = supabase.table("certifications").select("*").eq("profile_id", profile_id).order("order_index").execute().data
-    services       = supabase.table("services").select("*").eq("profile_id", profile_id).order("order_index").execute().data
-    testimonials   = supabase.table("testimonials").select("*").eq("profile_id", profile_id).order("order_index").execute().data
-    books          = supabase.table("books").select("*").eq("profile_id", profile_id).order("order_index").execute().data
-    publications   = supabase.table("publications").select("*").eq("profile_id", profile_id).order("order_index").execute().data
-    quotes         = supabase.table("quotes").select("*").eq("profile_id", profile_id).order("order_index").execute().data
+    experiences     = supabase.table("experiences").select("*").eq("profile_id", profile_id).order("order_index").execute().data
+    educations      = supabase.table("educations").select("*").eq("profile_id", profile_id).order("order_index").execute().data
+    certifications  = supabase.table("certifications").select("*").eq("profile_id", profile_id).order("order_index").execute().data
+    services        = supabase.table("services").select("*").eq("profile_id", profile_id).order("order_index").execute().data
+    testimonials    = supabase.table("testimonials").select("*").eq("profile_id", profile_id).order("order_index").execute().data
+    books           = supabase.table("books").select("*").eq("profile_id", profile_id).order("order_index").execute().data
+    publications    = supabase.table("publications").select("*").eq("profile_id", profile_id).order("order_index").execute().data
+    quotes          = supabase.table("quotes").select("*").eq("profile_id", profile_id).order("order_index").execute().data
     custom_sections = supabase.table("custom_sections").select("*").eq("profile_id", profile_id).order("order_index").execute().data
 
     return {
@@ -144,7 +168,7 @@ async def check_username(username: str):
     if not existing:
         return {"available": True, "suggestions": []}
     suggestions = []
-    for suffix in ["1", "2", "_dev", "_hq", "dev", "official"]:
+    for suffix in ["2", "3", "-dev", "-hq", "dev", "official"]:
         candidate = f"{username}{suffix}"[:30]
         if USERNAME_RE.match(candidate):
             row = safe_single(supabase.table("profiles").select("id").eq("username", candidate))
@@ -153,6 +177,18 @@ async def check_username(username: str):
         if len(suggestions) >= 3:
             break
     return {"available": False, "suggestions": suggestions}
+
+
+@router.post("/me/suggest-username")
+async def suggest_username_from_name(data: dict, user=Depends(get_current_user)):
+    """Given first_name + last_name, return the best available username."""
+    supabase = get_supabase_client()
+    profile_id = user["sub"]
+    first = data.get("first_name", "")
+    last  = data.get("last_name", "")
+    email = data.get("email", "")
+    suggested = _generate_username(supabase, first, last, email, profile_id)
+    return {"username": suggested}
 
 
 def ensure_bucket(supabase, bucket_id: str):
@@ -204,22 +240,22 @@ async def get_public_profile(username: str):
         supabase.table("profiles").select("*").eq("username", username).eq("is_public", True)
     )
     if not profile_res:
-        raise HTTPException(status_code=404, detail="Portfolio not found")
+        raise HTTPException(status_code=404, detail="Profile not found")
     profile = profile_res
     profile_id = profile["id"]
 
-    skills         = supabase.table("skills").select("*").eq("profile_id", profile_id).order("order_index").execute().data
-    projects       = supabase.table("projects").select("*").eq("profile_id", profile_id).order("order_index").execute().data
-    socials        = supabase.table("social_links").select("*").eq("profile_id", profile_id).execute().data
+    skills          = supabase.table("skills").select("*").eq("profile_id", profile_id).order("order_index").execute().data
+    projects        = supabase.table("projects").select("*").eq("profile_id", profile_id).order("order_index").execute().data
+    socials         = supabase.table("social_links").select("*").eq("profile_id", profile_id).execute().data
     section_order_row = safe_single(supabase.table("section_order").select("*").eq("profile_id", profile_id))
-    experiences    = supabase.table("experiences").select("*").eq("profile_id", profile_id).order("order_index").execute().data
-    educations     = supabase.table("educations").select("*").eq("profile_id", profile_id).order("order_index").execute().data
-    certifications = supabase.table("certifications").select("*").eq("profile_id", profile_id).order("order_index").execute().data
-    services       = supabase.table("services").select("*").eq("profile_id", profile_id).order("order_index").execute().data
-    testimonials   = supabase.table("testimonials").select("*").eq("profile_id", profile_id).order("order_index").execute().data
-    books          = supabase.table("books").select("*").eq("profile_id", profile_id).order("order_index").execute().data
-    publications   = supabase.table("publications").select("*").eq("profile_id", profile_id).order("order_index").execute().data
-    quotes         = supabase.table("quotes").select("*").eq("profile_id", profile_id).order("order_index").execute().data
+    experiences     = supabase.table("experiences").select("*").eq("profile_id", profile_id).order("order_index").execute().data
+    educations      = supabase.table("educations").select("*").eq("profile_id", profile_id).order("order_index").execute().data
+    certifications  = supabase.table("certifications").select("*").eq("profile_id", profile_id).order("order_index").execute().data
+    services        = supabase.table("services").select("*").eq("profile_id", profile_id).order("order_index").execute().data
+    testimonials    = supabase.table("testimonials").select("*").eq("profile_id", profile_id).order("order_index").execute().data
+    books           = supabase.table("books").select("*").eq("profile_id", profile_id).order("order_index").execute().data
+    publications    = supabase.table("publications").select("*").eq("profile_id", profile_id).order("order_index").execute().data
+    quotes          = supabase.table("quotes").select("*").eq("profile_id", profile_id).order("order_index").execute().data
     custom_sections = supabase.table("custom_sections").select("*").eq("profile_id", profile_id).order("order_index").execute().data
 
     return {

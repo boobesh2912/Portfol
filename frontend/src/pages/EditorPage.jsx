@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useState } from 'react'
 import { useProfileStore } from '../store/profileStore'
 import { useEditorStore } from '../store/editorStore'
 import OnboardingFlow from '../components/editor/OnboardingFlow'
@@ -15,13 +15,16 @@ import {
 } from '@dnd-kit/sortable'
 
 const TEMPLATES = [
-  { key: 'editorial', label: 'Editorial',  icon: '✦' },
-  { key: 'minimal',   label: 'Minimal',    icon: '◻' },
-  { key: 'bold',      label: 'Bold',       icon: '◈' },
-  { key: 'cardgrid',  label: 'Card Grid',  icon: '⊞' },
-  { key: 'terminal',  label: 'Terminal',   icon: '>' },
-  { key: 'magazine',  label: 'Magazine',   icon: '◎' },
-  { key: 'anime',     label: 'Anime Editorial',   icon: '🌸' } ,
+  { key: 'editorial', label: 'Editorial',       icon: '✦', pro: false },
+  { key: 'minimal',   label: 'Minimal',          icon: '◻', pro: false },
+  { key: 'bold',      label: 'Bold',             icon: '◈', pro: false },
+  { key: 'cardgrid',  label: 'Card Grid',        icon: '⊞', pro: false },
+  { key: 'terminal',  label: 'Terminal',         icon: '>', pro: false },
+  { key: 'magazine',  label: 'Magazine',         icon: '◎', pro: false },
+  { key: 'anime',     label: 'Anime Editorial',  icon: '🌸', pro: true },
+  { key: 'glass',     label: 'Glass',            icon: '◈', pro: true },
+  { key: 'timeline',  label: 'Timeline',         icon: '⊟', pro: true },
+  { key: 'neon',      label: 'Neon',             icon: '⚡', pro: true },
 ]
 
 const ALL_SECTIONS = [
@@ -48,18 +51,14 @@ export default function EditorPage() {
   const { activeSection, setActiveSection, onboardingComplete, setOnboardingComplete } = useEditorStore()
   const [savingTemplate, setSavingTemplate] = useState(false)
   const [showLiveAlert, setShowLiveAlert] = useState(false)
-  const [hiddenSections, setHiddenSections] = useState([])
+  const [showProModal, setShowProModal] = useState(false)
+  const [hiddenSections, setHiddenSections] = useState(profile?.hidden_sections ?? [])
   const [mobileTab, setMobileTab] = useState('form')
   const [showAddSection, setShowAddSection] = useState(false)
   const [settingsSection, setSettingsSection] = useState(null)
-  const [sectionSettings, setSectionSettings] = useState({})
+  const [sectionSettings, setSectionSettings] = useState(profile?.section_settings ?? {})
   const [savingSettings, setSavingSettings] = useState(false)
-  const [sidebarTab, setSidebarTab] = useState('sections') // 'sections' | 'templates'
-
-  useEffect(() => {
-    if (profile?.hidden_sections) setHiddenSections(profile.hidden_sections)
-    if (profile?.section_settings) setSectionSettings(profile.section_settings)
-  }, [profile?.hidden_sections, profile?.section_settings])
+  const [sidebarTab, setSidebarTab] = useState('sections')
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -77,6 +76,8 @@ export default function EditorPage() {
   }
 
   const handleTemplateChange = async (tpl) => {
+    const tplMeta = TEMPLATES.find(t => t.key === tpl)
+    if (tplMeta?.pro && !profile?.is_pro) { setShowProModal(true); return }
     setSavingTemplate(true)
     try { await updateProfile({ template: tpl }); await fetchProfile() }
     finally { setSavingTemplate(false) }
@@ -267,6 +268,23 @@ export default function EditorPage() {
         </div>
       </div>
 
+      {/* Pro upgrade modal */}
+      {showProModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,.45)', backdropFilter: 'blur(4px)' }}
+          onClick={() => setShowProModal(false)}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '32px 36px', maxWidth: 380, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,.2)', border: '1px solid var(--border)', textAlign: 'center' }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: 32, marginBottom: 12 }}>✦</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: 'var(--text-heading)', marginBottom: 8 }}>Pro Template</div>
+            <div style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 24 }}>This template is available on the Pro plan. Upgrade to unlock all premium templates and analytics.</div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+              <button onClick={() => setShowProModal(false)} style={{ padding: '9px 20px', borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', fontSize: 13, cursor: 'pointer' }}>Maybe later</button>
+              <a href="/dashboard/settings" style={{ padding: '9px 20px', borderRadius: 8, background: 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Upgrade to Pro — $9/mo</a>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main 3-panel body */}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
@@ -320,26 +338,33 @@ export default function EditorPage() {
             </>
           ) : (
             <div style={{ flex: 1, overflowY: 'auto', padding: '10px 10px 16px' }}>
-              {TEMPLATES.map(t => (
-                <button key={t.key} onClick={() => handleTemplateChange(t.key)} style={{
-                  width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 10,
-                  padding: '10px 12px', borderRadius: 8, marginBottom: 4, cursor: 'pointer',
-                  border: `1px solid ${currentTemplate === t.key ? 'rgba(200,136,74,.5)' : 'transparent'}`,
-                  background: currentTemplate === t.key ? 'rgba(200,136,74,.08)' : 'transparent',
-                  transition: 'all .15s',
-                }}
-                  onMouseEnter={e => { if (currentTemplate !== t.key) e.currentTarget.style.background = 'var(--bg-warm)' }}
-                  onMouseLeave={e => { if (currentTemplate !== t.key) e.currentTarget.style.background = 'transparent' }}
-                >
-                  <span style={{ fontSize: 13, color: currentTemplate === t.key ? 'var(--accent)' : 'var(--text-muted)', flexShrink: 0 }}>{t.icon}</span>
-                  <div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: currentTemplate === t.key ? 600 : 400, color: currentTemplate === t.key ? 'var(--accent)' : 'var(--text-heading)' }}>{t.label}</div>
-                  </div>
-                  {currentTemplate === t.key && (
-                    <span style={{ marginLeft: 'auto', width: 6, height: 6, borderRadius: '50%', background: 'var(--accent)', flexShrink: 0 }} />
-                  )}
-                </button>
-              ))}
+              {TEMPLATES.map(t => {
+                const isLocked = t.pro && !profile?.is_pro
+                const isActive = currentTemplate === t.key
+                return (
+                  <button key={t.key} onClick={() => handleTemplateChange(t.key)} style={{
+                    width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '10px 12px', borderRadius: 8, marginBottom: 4, cursor: 'pointer',
+                    border: `1px solid ${isActive ? 'rgba(200,136,74,.5)' : 'transparent'}`,
+                    background: isActive ? 'rgba(200,136,74,.08)' : 'transparent',
+                    transition: 'all .15s',
+                  }}
+                    onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'var(--bg-warm)' }}
+                    onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent' }}
+                  >
+                    <span style={{ fontSize: 13, color: isActive ? 'var(--accent)' : 'var(--text-muted)', flexShrink: 0 }}>{t.icon}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: isActive ? 600 : 400, color: isActive ? 'var(--accent)' : 'var(--text-heading)' }}>{t.label}</div>
+                    </div>
+                    {isLocked && (
+                      <span style={{ fontSize: 9, fontFamily: 'var(--font-mono)', fontWeight: 700, letterSpacing: '.06em', color: '#92400e', background: '#fef3c7', border: '1px solid #f59e0b', borderRadius: 4, padding: '2px 5px', flexShrink: 0 }}>PRO</span>
+                    )}
+                    {isActive && !isLocked && (
+                      <span style={{ marginLeft: 'auto', width: 6, height: 6, borderRadius: '50%', background: 'var(--accent)', flexShrink: 0 }} />
+                    )}
+                  </button>
+                )
+              })}
               {savingTemplate && <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-muted)', textAlign: 'center', marginTop: 8, letterSpacing: '.06em' }}>Saving…</div>}
             </div>
           )}

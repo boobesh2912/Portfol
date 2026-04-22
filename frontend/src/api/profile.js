@@ -11,3 +11,4 @@ export const uploadAvatar = (file) => {
 export const deleteAccount = () => api.delete('/api/profile/me')
 export const checkUsername = (username) => api.get(`/api/profile/check-username?username=${encodeURIComponent(username)}`)
 export const updateUsername = (username) => api.patch('/api/profile/me/username', { username })
+export const suggestUsername = (data) => api.post('/api/profile/me/suggest-username', data)
