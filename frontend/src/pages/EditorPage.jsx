@@ -21,6 +21,7 @@ const TEMPLATES = [
   { key: 'cardgrid',  label: 'Card Grid',  icon: '⊞' },
   { key: 'terminal',  label: 'Terminal',   icon: '>' },
   { key: 'magazine',  label: 'Magazine',   icon: '◎' },
+  { key: 'anime',     label: 'Anime Editorial',   icon: '🌸' } ,
 ]
 
 const ALL_SECTIONS = [
@@ -240,7 +241,7 @@ export default function EditorPage() {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '0 16px', flexShrink: 0, gap: 12,
       }}>
-        <span style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 600, fontStyle: 'italic', color: 'var(--text-heading)', flexShrink: 0 }}>Portfol</span>
+        <span style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 600, fontStyle: 'italic', color: 'var(--text-heading)', flexShrink: 0 }}>Vizhva</span>
 
         <div style={{ flex: 1 }} />
 

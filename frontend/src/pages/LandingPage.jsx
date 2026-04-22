@@ -19,7 +19,7 @@ const FEATURES = [
 ]
 
 const FAQS = [
-  { q: 'Is it really free?', a: "Yes. The free tier is fully functional — your portfolio lives at portfol.me/yourname forever, with all sections and templates. No credit card needed." },
+  { q: 'Is it really free?', a: "Yes. The free tier is fully functional — your portfolio lives at vizhva.app/yourname forever, with all sections and templates. No credit card needed." },
   { q: 'Can I use my own domain?', a: "Yes, with Pro ($5/mo). Add a CNAME record in your DNS and we handle SSL automatically via Let's Encrypt." },
   { q: 'How fast will my portfolio load?', a: 'Very fast. Public portfolio pages are statically rendered with no heavy JS. Under 500ms on most connections.' },
   { q: 'What goes in a portfolio?', a: 'Name, tagline, bio, skills, projects (with images and links), experience, education, services, testimonials, and more.' },
@@ -135,7 +135,7 @@ export default function LandingPage() {
 
       {/* Nav */}
       <nav style={S.nav}>
-        <span style={S.logo}>Portfol</span>
+        <span style={S.logo}>Vizhva</span>
         <div style={{ display: 'flex', gap: 32, alignItems: 'center' }}>
           <a href="#features" style={{ fontSize: 13, color: 'var(--text)', fontWeight: 400 }}>Features</a>
           <a href="#pricing" style={{ fontSize: 13, color: 'var(--text)', fontWeight: 400 }}>Pricing</a>
@@ -165,7 +165,7 @@ export default function LandingPage() {
 
         <p style={{ fontSize: 17, color: 'var(--text)', maxWidth: 500, margin: '0 auto 40px', lineHeight: 1.7, fontWeight: 300 }}>
           Fill a form, pick a template, share the link. No code. No credit card. Your professional portfolio at{' '}
-          <span style={{ color: 'var(--text-heading)', fontWeight: 500 }}>portfol.me/yourname</span>.
+          <span style={{ color: 'var(--text-heading)', fontWeight: 500 }}>{window.location.host}/yourname</span>.
         </p>
 
         <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -197,7 +197,7 @@ export default function LandingPage() {
             {[
               { step: '01', title: 'Fill the form', desc: 'Name, bio, skills, projects. Takes 3 minutes. Skip anything you want to add later.' },
               { step: '02', title: 'Pick a template', desc: 'Choose from 6 beautiful templates. Switch anytime — your data stays intact.' },
-              { step: '03', title: 'Go live', desc: 'Your portfolio is instantly live at portfol.me/yourname. Share the link anywhere.' },
+              { step: '03', title: 'Go live', desc: 'Your portfolio is instantly live at your Vizhva URL. Share the link anywhere.' },
             ].map(item => (
               <div key={item.step} style={{ textAlign: 'left' }}>
                 <div style={{ fontFamily: 'var(--font-display)', fontSize: 52, fontWeight: 600, color: 'var(--border)', marginBottom: 18, lineHeight: 1 }}>{item.step}</div>
@@ -266,7 +266,7 @@ export default function LandingPage() {
                 ))}
               </div>
               <div style={{ flex: 1, background: 'var(--bg-warm)', borderRadius: 5, padding: '4px 12px', fontSize: 11, color: 'var(--text-muted)', marginLeft: 10, maxWidth: 220, fontFamily: 'var(--font-mono)' }}>
-                portfol.me/alex
+                {window.location.host}/alex
               </div>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--accent)', letterSpacing: '.08em' }}>
                 {TEMPLATE_LIST.find(t => t.key === activeTemplate)?.label}
@@ -315,7 +315,7 @@ export default function LandingPage() {
               <div style={{ fontFamily: 'var(--font-display)', fontSize: 52, fontWeight: 600, color: 'var(--text-heading)', margin: '8px 0 2px', lineHeight: 1 }}>$0</div>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-muted)', marginBottom: 28 }}>forever</div>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28 }}>
-                {['Full portfolio', 'All sections', 'portfol.me/username', 'Basic analytics', '6 templates', '"Built with Portfol" badge'].map(f => (
+                {['Full portfolio', 'All sections', 'Your Vizhva URL', 'Basic analytics', '6 templates', '"Built with Vizhva" badge'].map(f => (
                   <li key={f} style={{ fontSize: 13, color: 'var(--text)', display: 'flex', gap: 10 }}>
                     <span style={{ color: 'var(--success)' }}>✓</span>{f}
                   </li>
@@ -389,12 +389,12 @@ export default function LandingPage() {
       {/* Footer */}
       <footer style={{ padding: '28px 48px', borderTop: '1px solid var(--border)', background: 'var(--bg)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16, marginBottom: 16 }}>
-          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontStyle: 'italic', color: 'var(--text-heading)', fontSize: 20 }}>Portfol</span>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontStyle: 'italic', color: 'var(--text-heading)', fontSize: 20 }}>Vizhva</span>
           <div style={{ display: 'flex', gap: 24 }}>
             <a href="/privacy" style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-muted)' }}>Privacy</a>
             <a href="/terms" style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-muted)' }}>Terms</a>
           </div>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-muted)' }}>© 2026 Portfol</span>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-muted)' }}>© 2026 Vizhva</span>
         </div>
         <div style={{ textAlign: 'center', paddingTop: 12, borderTop: '1px solid var(--border)' }}>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-muted)', letterSpacing: '.12em', textTransform: 'uppercase' }}>

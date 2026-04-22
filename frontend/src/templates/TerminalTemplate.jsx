@@ -292,7 +292,7 @@ export default function TerminalTemplate({
 
       <div style={{ padding: '24px 52px', borderTop: `1px solid ${C.border}`, display: 'flex', gap: 8, alignItems: 'center' }}>
         <span style={{ color: C.green }}>$</span>
-        <span style={{ color: C.text, fontSize: 11 }}>— {name} · Built with Portfol</span>
+        <span style={{ color: C.text, fontSize: 11 }}>— {name} · Built with Vizhva</span>
         <span style={{ color: C.green }}>█</span>
       </div>
     </div>

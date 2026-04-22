@@ -8,6 +8,7 @@ import BoldTemplate from '../templates/BoldTemplate'
 import CardGridTemplate from '../templates/CardGridTemplate'
 import TerminalTemplate from '../templates/TerminalTemplate'
 import MagazineTemplate from '../templates/MagazineTemplate'
+import AnimeEditorialTemplate from '../templates/AnimeEditorialTemplate'
 
 export default function PublicPortfolioPage() {
   const { username } = useParams()
@@ -24,9 +25,9 @@ export default function PublicPortfolioPage() {
         recordView(username, document.referrer || 'direct')
         // SEO
         if (d?.profile) {
-          document.title = `${d.profile.full_name || username} — Portfolio`
+          document.title = `${d.profile.full_name || username} — Vizhva`
           setMeta('description', d.profile.bio || d.profile.tagline || `${username}'s portfolio`)
-          setMeta('og:title', `${d.profile.full_name || username} — Portfolio`)
+          setMeta('og:title', `${d.profile.full_name || username} — Vizhva`)
           setMeta('og:description', d.profile.bio || d.profile.tagline || '')
           if (d.profile.avatar_url) setMeta('og:image', d.profile.avatar_url)
           setMeta('og:type', 'website')
@@ -39,7 +40,7 @@ export default function PublicPortfolioPage() {
       })
 
     return () => {
-      document.title = 'Portfol'
+      document.title = 'Vizhva'
     }
   }, [username])
 
@@ -88,6 +89,7 @@ export default function PublicPortfolioPage() {
     case 'cardgrid':  TemplateComponent = CardGridTemplate; break
     case 'terminal':  TemplateComponent = TerminalTemplate; break
     case 'magazine':  TemplateComponent = MagazineTemplate; break
+    case 'anime':     TemplateComponent = AnimeEditorialTemplate; break 
     default:          TemplateComponent = MinimalTemplate
   }
 
@@ -97,7 +99,7 @@ export default function PublicPortfolioPage() {
       <div style={{ textAlign: 'center', padding: '14px 16px', borderTop: '1px solid #e5e3de', background: '#fafaf8', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}>
         {!data.profile?.is_pro && (
           <a href="/" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: '#b0ae9e', textDecoration: 'none', letterSpacing: '.1em', textTransform: 'uppercase' }}>
-            Built with <span style={{ color: '#c8884a', fontWeight: 600 }}>Portfol</span> · Get yours free
+            Built with <span style={{ color: '#c8884a', fontWeight: 600 }}>Vizhva</span> · Get yours free
           </a>
         )}
         <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: '#c8c6bc', letterSpacing: '.1em', textTransform: 'uppercase' }}>

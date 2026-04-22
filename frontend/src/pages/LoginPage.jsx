@@ -8,7 +8,7 @@ export default function LoginPage() {
     }}>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 32 }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 600, fontStyle: 'italic', color: 'var(--text-heading)', marginBottom: 8 }}>Portfol</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 600, fontStyle: 'italic', color: 'var(--text-heading)', marginBottom: 8 }}>Vizhva</div>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-muted)', letterSpacing: '.12em', textTransform: 'uppercase' }}>Sign in to your account</div>
         </div>
         <SignIn

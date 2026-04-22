@@ -11,7 +11,7 @@ const BoldTemplate      = lazy(() => import('../../templates/BoldTemplate'))
 const CardGridTemplate  = lazy(() => import('../../templates/CardGridTemplate'))
 const TerminalTemplate  = lazy(() => import('../../templates/TerminalTemplate'))
 const MagazineTemplate  = lazy(() => import('../../templates/MagazineTemplate'))
-
+const AnimeEditorialTemplate  = lazy(() => import('../../templates/AnimeEditorialTemplate'))  
 const TEMPLATES = [
   { key: 'editorial', label: 'Editorial',  desc: 'Warm serif · amber · professional' },
   { key: 'minimal',   label: 'Minimal',    desc: 'Clean white canvas · Georgia' },
@@ -19,6 +19,7 @@ const TEMPLATES = [
   { key: 'cardgrid',  label: 'Card Grid',  desc: 'Light masonry · hover effects' },
   { key: 'terminal',  label: 'Terminal',   desc: 'Green-on-dark · hacker style' },
   { key: 'magazine',  label: 'Magazine',   desc: 'Numbered editorial · serif' },
+  { key: 'anime',     label: 'Anime Editorial',   desc: 'Soft pastel colors · playful' } ,    
 ]
 
 // Skill categories with presets
@@ -220,7 +221,7 @@ export default function OnboardingFlow({ onComplete }) {
         {/* Header */}
         <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 600, fontStyle: 'italic', color: 'var(--text-heading)' }}>Portfol</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 600, fontStyle: 'italic', color: 'var(--text-heading)' }}>Vizhva</span>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-muted)', letterSpacing: '.1em' }}>Step {step + 1} of {STEPS.length}</span>
           </div>
           <div style={{ height: 2, background: 'var(--border)', borderRadius: 2, overflow: 'hidden' }}>

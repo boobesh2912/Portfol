@@ -43,7 +43,7 @@ export default function DashboardLayout() {
       }}>
         <div style={{ padding: '0 24px 32px' }}>
           <a href="/" style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 600, fontStyle: 'italic', color: 'var(--text-heading)', letterSpacing: '-0.5px' }}>
-            Portfol
+            Vizhva
           </a>
         </div>
 

@@ -15,7 +15,7 @@ export const useEditorStore = create(
       setOnboardingStep: (step) => set({ onboardingStep: step }),
     }),
     {
-      name: 'portfol-editor',
+      name: 'vizhva-editor',
       partialize: (state) => ({ onboardingComplete: state.onboardingComplete }),
     }
   )
