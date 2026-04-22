@@ -20,7 +20,7 @@ const FEATURES = [
 
 const FAQS = [
   { q: 'Is it really free?', a: "Yes. The free tier is fully functional — your portfolio lives at vizhva.app/yourname forever, with all sections and templates. No credit card needed." },
-  { q: 'Can I use my own domain?', a: "Yes, with Pro ($5/mo). Add a CNAME record in your DNS and we handle SSL automatically via Let's Encrypt." },
+  { q: 'Can I use my own domain?', a: "Yes, with Pro ($9/mo). Add a CNAME record in your DNS and we handle SSL automatically via Let's Encrypt." },
   { q: 'How fast will my portfolio load?', a: 'Very fast. Public portfolio pages are statically rendered with no heavy JS. Under 500ms on most connections.' },
   { q: 'What goes in a portfolio?', a: 'Name, tagline, bio, skills, projects (with images and links), experience, education, services, testimonials, and more.' },
   { q: 'Can I take it offline?', a: 'Yes. You can set your portfolio to private at any time from your dashboard settings.' },
@@ -330,7 +330,7 @@ export default function LandingPage() {
             <div style={{ ...S.card, textAlign: 'left', padding: 36, border: '1px solid rgba(200,136,74,.4)', background: 'rgba(200,136,74,.03)', position: 'relative', overflow: 'hidden' }}>
               <div style={{ position: 'absolute', top: 0, right: 0, background: 'var(--accent)', fontSize: 10, fontWeight: 700, padding: '4px 14px', borderBottomLeftRadius: 8, color: '#fff', letterSpacing: 1 }}>PRO</div>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--accent)', letterSpacing: '.12em', textTransform: 'uppercase' }}>Pro</span>
-              <div style={{ fontFamily: 'var(--font-display)', fontSize: 52, fontWeight: 600, color: 'var(--text-heading)', margin: '8px 0 2px', lineHeight: 1 }}>$5</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 52, fontWeight: 600, color: 'var(--text-heading)', margin: '8px 0 2px', lineHeight: 1 }}>$9</div>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-muted)', marginBottom: 28 }}>/month</div>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28 }}>
                 {['Everything in Free', 'Custom domain', 'Advanced analytics', 'Remove branding', 'Priority support'].map(f => (

@@ -26,7 +26,7 @@ function BlurOverlay({ children }) {
         <div style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, color: 'var(--text-heading)' }}>Pro Analytics</div>
         <div style={{ fontSize: 13, color: 'var(--text)', maxWidth: 240, textAlign: 'center' }}>Countries, referrers, and device breakdown require Pro.</div>
         <Link to="/dashboard/settings" style={{ background: 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 600, padding: '8px 20px', borderRadius: 8, textDecoration: 'none' }}>
-          Upgrade to Pro — $5/mo
+          Upgrade to Pro — $9/mo
         </Link>
       </div>
     </div>

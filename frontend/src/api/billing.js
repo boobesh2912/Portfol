@@ -7,5 +7,5 @@ export const createCheckout = async () => {
 
 export const openPortal = async () => {
   const data = await api.post('/api/billing/portal')
-  if (data?.portal_url) window.location.href = data.portal_url
+  if (data?.portal_url) window.open(data.portal_url, '_blank')
 }

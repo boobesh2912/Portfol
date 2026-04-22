@@ -3,7 +3,7 @@ import { useProfileStore } from '../store/profileStore'
 import { updateProfile, deleteAccount, checkUsername, updateUsername } from '../api/profile'
 import { connectDomain, verifyDomain, removeDomain } from '../api/domain'
 import { createCheckout, openPortal } from '../api/billing'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useClerk } from '@clerk/react'
 
 const SITE_BASE = import.meta.env.VITE_SITE_BASE || window.location.host
@@ -12,8 +12,11 @@ export default function SettingsPage() {
   const { profile, fetchProfile, updateProfile: updateLocalProfile } = useProfileStore()
   const { signOut } = useClerk()
   const navigate = useNavigate()
+  const location = useLocation()
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [checkoutLoading, setCheckoutLoading] = useState(false)
+  const [upgradeBanner, setUpgradeBanner] = useState(false)
 
   const [fullName, setFullName] = useState('')
   const [tagline, setTagline] = useState('')
@@ -43,6 +46,18 @@ export default function SettingsPage() {
     }
   }, [profile])
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    if (params.get('upgrade') === 'success') {
+      setUpgradeBanner(true)
+      // Re-fetch profile so is_pro reflects the webhook update
+      fetchProfile()
+      // Clean URL without reloading
+      navigate('/dashboard/settings', { replace: true })
+      setTimeout(() => setUpgradeBanner(false), 8000)
+    }
+  }, [])
+
   const saveProfile = async () => {
     setSaving(true)
     try {
@@ -52,6 +67,17 @@ export default function SettingsPage() {
       setTimeout(() => setSaved(false), 2000)
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleCheckout = async () => {
+    setCheckoutLoading(true)
+    try {
+      await createCheckout()
+    } catch (e) {
+      alert(e.message || 'Could not start checkout. Please try again.')
+    } finally {
+      setCheckoutLoading(false)
     }
   }
 
@@ -163,6 +189,23 @@ export default function SettingsPage() {
 
   return (
     <div style={{ padding: '40px 48px', maxWidth: 720 }}>
+
+      {/* Upgrade success banner */}
+      {upgradeBanner && (
+        <div style={{
+          marginBottom: 28, padding: '14px 20px', borderRadius: 10,
+          background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.35)',
+          display: 'flex', alignItems: 'center', gap: 10,
+        }}>
+          <span style={{ fontSize: 18 }}>🎉</span>
+          <div>
+            <div style={{ fontWeight: 700, color: '#16a34a', fontSize: 14 }}>You're now on Pro!</div>
+            <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>Your Pro features are now active. Enjoy custom domains and advanced analytics.</div>
+          </div>
+          <button onClick={() => setUpgradeBanner(false)} style={{ marginLeft: 'auto', background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--text-muted)' }}>×</button>
+        </div>
+      )}
+
       <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 800, color: 'var(--text-heading)', marginBottom: 40, letterSpacing: -0.5 }}>Settings</h1>
 
       {/* Profile */}
@@ -344,9 +387,13 @@ export default function SettingsPage() {
         ) : (
           <div>
             <p style={{ fontSize: 14, color: 'var(--text)', marginBottom: 6 }}>You're on the <strong style={{ color: 'var(--text-heading)' }}>Free</strong> plan.</p>
-            <p style={{ fontSize: 14, color: 'var(--text)', marginBottom: 20 }}>Upgrade to Pro for custom domains, advanced analytics, and no branding — $5/month.</p>
-            <button onClick={() => createCheckout()} style={{ ...btnPrimary, background: 'var(--accent)', boxShadow: '0 0 20px rgba(124,92,252,0.3)' }}>
-              Upgrade to Pro — $5/mo
+            <p style={{ fontSize: 14, color: 'var(--text)', marginBottom: 20 }}>Upgrade to Pro for custom domains, advanced analytics, and no branding — $9/month.</p>
+            <button
+              onClick={handleCheckout}
+              disabled={checkoutLoading}
+              style={{ ...btnPrimary, background: 'var(--accent)', color: '#fff', opacity: checkoutLoading ? 0.7 : 1, cursor: checkoutLoading ? 'not-allowed' : 'pointer' }}
+            >
+              {checkoutLoading ? 'Redirecting to checkout…' : 'Upgrade to Pro — $9/mo'}
             </button>
           </div>
         )}
