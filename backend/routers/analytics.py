@@ -4,7 +4,10 @@ from typing import Optional
 import hashlib
 import uuid
 from dependencies import get_current_user, get_supabase_client
-from main import limiter
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address)
 
 router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 
