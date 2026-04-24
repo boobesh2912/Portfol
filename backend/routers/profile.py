@@ -82,11 +82,14 @@ async def get_my_profile(user=Depends(get_current_user)):
         email = user.get("email", "")
         username = _generate_username(supabase, "", "", email, profile_id)
         try:
-            supabase.table("profiles").insert({
+            insert_data = {
                 "id": profile_id,
                 "username": username,
                 "full_name": "",
-            }).execute()
+            }
+            if email:
+                insert_data["email_public"] = email
+            supabase.table("profiles").insert(insert_data).execute()
         except Exception:
             pass  # Race condition — re-fetch below
         profile = safe_single(supabase.table("profiles").select("*").eq("id", profile_id))

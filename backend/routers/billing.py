@@ -42,6 +42,31 @@ def _frontend_url() -> str:
 # POST /api/billing/checkout
 # ---------------------------------------------------------------------------
 
+async def _fetch_clerk_email(user_id: str) -> str:
+    """Fetch user's primary email from Clerk Backend API using CLERK_SECRET_KEY."""
+    secret_key = os.environ.get("CLERK_SECRET_KEY", "")
+    if not secret_key:
+        return ""
+    try:
+        async with httpx.AsyncClient(timeout=8) as client:
+            resp = await client.get(
+                f"https://api.clerk.com/v1/users/{user_id}",
+                headers={"Authorization": f"Bearer {secret_key}"},
+            )
+        if resp.status_code == 200:
+            data = resp.json()
+            addrs = data.get("email_addresses", [])
+            primary_id = data.get("primary_email_address_id")
+            for addr in addrs:
+                if addr.get("id") == primary_id:
+                    return addr.get("email_address", "")
+            if addrs:
+                return addrs[0].get("email_address", "")
+    except Exception:
+        pass
+    return ""
+
+
 @router.post("/checkout")
 async def create_checkout(user=Depends(get_current_user)):
     supabase = get_supabase_client()
@@ -53,8 +78,15 @@ async def create_checkout(user=Depends(get_current_user)):
     email = profile.get("email_public") or user.get("email", "")
     name  = profile.get("full_name") or "Vizhva User"
 
+    # Fallback for Google OAuth users whose email wasn't stored at signup
     if not email:
-        raise HTTPException(status_code=400, detail="No email on your profile. Add one in Settings first.")
+        email = await _fetch_clerk_email(profile_id)
+        if email:
+            # Persist so future checkouts don't need the Clerk API call
+            supabase.table("profiles").update({"email_public": email}).eq("id", profile_id).execute()
+
+    if not email:
+        raise HTTPException(status_code=400, detail="Could not retrieve your email. Please add one in Settings → Profile.")
 
     return_url = f"{_frontend_url()}/dashboard/settings?upgrade=success"
 
