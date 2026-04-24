@@ -125,10 +125,10 @@ export default function GlassTemplate({
                 <div key={exp.id} style={card()}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
                     <div>
-                      <div style={{ fontWeight: 700, color: G.head, fontSize: 16 }}>{exp.title}</div>
+                      <div style={{ fontWeight: 700, color: G.head, fontSize: 16 }}>{exp.role}</div>
                       <div style={{ color: G.accent, fontSize: 13 }}>{exp.company}</div>
                     </div>
-                    <div style={{ fontFamily: mono, fontSize: 11, color: G.mute, textAlign: 'right' }}>{exp.start_date} — {exp.end_date || 'Present'}</div>
+                    <div style={{ fontFamily: mono, fontSize: 11, color: G.mute, textAlign: 'right' }}>{exp.period}</div>
                   </div>
                   {exp.description && <p style={{ margin: '8px 0 0', lineHeight: 1.7, color: G.text, fontSize: 13 }}>{exp.description}</p>}
                 </div>
@@ -145,8 +145,8 @@ export default function GlassTemplate({
               {educations.map(edu => (
                 <div key={edu.id} style={card()}>
                   <div style={{ fontWeight: 700, color: G.head, fontSize: 16 }}>{edu.degree}</div>
-                  <div style={{ color: G.accent, fontSize: 13, marginTop: 2 }}>{edu.school}</div>
-                  {edu.year && <div style={{ fontFamily: mono, fontSize: 11, color: G.mute, marginTop: 4 }}>{edu.year}</div>}
+                  <div style={{ color: G.accent, fontSize: 13, marginTop: 2 }}>{edu.institution}</div>
+                  {edu.period && <div style={{ fontFamily: mono, fontSize: 11, color: G.mute, marginTop: 4 }}>{edu.period}</div>}
                   {edu.description && <p style={{ margin: '8px 0 0', lineHeight: 1.7, color: G.text, fontSize: 13 }}>{edu.description}</p>}
                 </div>
               ))}
@@ -215,8 +215,8 @@ export default function GlassTemplate({
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {testimonials.map(t => (
                 <div key={t.id} style={card()}>
-                  <p style={{ margin: '0 0 16px', fontSize: 15, lineHeight: 1.8, color: G.text, fontStyle: 'italic' }}>"{t.body}"</p>
-                  <div style={{ fontWeight: 700, color: G.accent, fontSize: 13 }}>{t.author}</div>
+                  <p style={{ margin: '0 0 16px', fontSize: 15, lineHeight: 1.8, color: G.text, fontStyle: 'italic' }}>"{t.text}"</p>
+                  <div style={{ fontWeight: 700, color: G.accent, fontSize: 13 }}>{t.name}</div>
                   {t.role && <div style={{ fontSize: 12, color: G.mute }}>{t.role}</div>}
                 </div>
               ))}
@@ -233,7 +233,7 @@ export default function GlassTemplate({
                 <div key={b.id} style={card({ padding: '20px' })}>
                   <div style={{ fontWeight: 700, color: G.head, fontSize: 14, marginBottom: 4 }}>{b.title}</div>
                   {b.author && <div style={{ fontSize: 12, color: G.accent }}>{b.author}</div>}
-                  {b.note && <p style={{ margin: '8px 0 0', fontSize: 12, lineHeight: 1.6, color: G.mute }}>{b.note}</p>}
+                  {b.notes && <p style={{ margin: '8px 0 0', fontSize: 12, lineHeight: 1.6, color: G.mute }}>{b.notes}</p>}
                 </div>
               ))}
             </div>
@@ -248,7 +248,7 @@ export default function GlassTemplate({
               {publications.map(p => (
                 <div key={p.id} style={card()}>
                   <div style={{ fontWeight: 700, color: G.head, fontSize: 15 }}>{p.title}</div>
-                  {p.venue && <div style={{ fontSize: 12, color: G.accent, marginTop: 3 }}>{p.venue}</div>}
+                  {p.publisher && <div style={{ fontSize: 12, color: G.accent, marginTop: 3 }}>{p.publisher}</div>}
                   {p.year && <div style={{ fontFamily: mono, fontSize: 11, color: G.mute, marginTop: 3 }}>{p.year}</div>}
                   {p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" style={{ fontFamily: mono, fontSize: 11, color: G.accent, textDecoration: 'none', marginTop: 8, display: 'block' }}>Read →</a>}
                 </div>
@@ -275,7 +275,7 @@ export default function GlassTemplate({
         {/* CUSTOM SECTIONS */}
         {visible.includes('custom') && customSections.map(cs => (
           <section key={cs.id} id={cs.section_key} style={{ marginBottom: 32 }}>
-            <SLabel>{cs.title}</SLabel>
+            <SLabel>{cs.section_label}</SLabel>
             <div style={card()}>
               <p style={{ margin: 0, lineHeight: 1.8, color: G.text, whiteSpace: 'pre-wrap', fontSize: 14 }}>{cs.content}</p>
             </div>

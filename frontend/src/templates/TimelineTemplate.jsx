@@ -99,10 +99,10 @@ export default function TimelineTemplate({
                     <div style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 10, padding: '16px 20px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
                         <div>
-                          <div style={{ fontWeight: 700, color: T.head, fontSize: 15 }}>{exp.title}</div>
+                          <div style={{ fontWeight: 700, color: T.head, fontSize: 15 }}>{exp.role}</div>
                           <div style={{ color: T.accent, fontSize: 13, marginTop: 2 }}>{exp.company}</div>
                         </div>
-                        <div style={{ fontFamily: mono, fontSize: 10, color: T.mute, textAlign: 'right', flexShrink: 0, marginLeft: 12 }}>{exp.start_date} — {exp.end_date || 'Present'}</div>
+                        <div style={{ fontFamily: mono, fontSize: 10, color: T.mute, textAlign: 'right', flexShrink: 0, marginLeft: 12 }}>{exp.period}</div>
                       </div>
                       {exp.description && <p style={{ margin: '8px 0 0', lineHeight: 1.7, color: T.text, fontSize: 13 }}>{exp.description}</p>}
                     </div>
@@ -119,8 +119,8 @@ export default function TimelineTemplate({
                   <TimelineItem key={edu.id} dot="#7c3aed">
                     <div style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 10, padding: '16px 20px' }}>
                       <div style={{ fontWeight: 700, color: T.head, fontSize: 15 }}>{edu.degree}</div>
-                      <div style={{ color: '#7c3aed', fontSize: 13, marginTop: 2 }}>{edu.school}</div>
-                      {edu.year && <div style={{ fontFamily: mono, fontSize: 10, color: T.mute, marginTop: 4 }}>{edu.year}</div>}
+                      <div style={{ color: '#7c3aed', fontSize: 13, marginTop: 2 }}>{edu.institution}</div>
+                      {edu.period && <div style={{ fontFamily: mono, fontSize: 10, color: T.mute, marginTop: 4 }}>{edu.period}</div>}
                       {edu.description && <p style={{ margin: '8px 0 0', lineHeight: 1.7, color: T.text, fontSize: 13 }}>{edu.description}</p>}
                     </div>
                   </TimelineItem>
@@ -161,8 +161,8 @@ export default function TimelineTemplate({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                   {testimonials.map(t => (
                     <blockquote key={t.id} style={{ margin: 0, background: T.bgCard, border: `1px solid ${T.border}`, borderLeft: `4px solid ${T.accent}`, borderRadius: '0 10px 10px 0', padding: '18px 22px' }}>
-                      <p style={{ margin: '0 0 12px', fontSize: 15, lineHeight: 1.8, color: T.text, fontStyle: 'italic' }}>"{t.body}"</p>
-                      <div style={{ fontWeight: 700, color: T.head, fontSize: 13 }}>{t.author}</div>
+                      <p style={{ margin: '0 0 12px', fontSize: 15, lineHeight: 1.8, color: T.text, fontStyle: 'italic' }}>"{t.text}"</p>
+                      <div style={{ fontWeight: 700, color: T.head, fontSize: 13 }}>{t.name}</div>
                       {t.role && <div style={{ fontSize: 12, color: T.mute }}>{t.role}</div>}
                     </blockquote>
                   ))}
@@ -178,7 +178,7 @@ export default function TimelineTemplate({
                   {publications.map(p => (
                     <div key={p.id} style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 10, padding: '16px 20px' }}>
                       <div style={{ fontWeight: 700, color: T.head, fontSize: 15 }}>{p.title}</div>
-                      {p.venue && <div style={{ fontSize: 12, color: T.accent, marginTop: 3 }}>{p.venue}</div>}
+                      {p.publisher && <div style={{ fontSize: 12, color: T.accent, marginTop: 3 }}>{p.publisher}</div>}
                       {p.year && <div style={{ fontFamily: mono, fontSize: 10, color: T.mute, marginTop: 2 }}>{p.year}</div>}
                       {p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" style={{ fontFamily: mono, fontSize: 11, color: T.accent, textDecoration: 'none', marginTop: 8, display: 'block' }}>Read →</a>}
                     </div>
@@ -190,7 +190,7 @@ export default function TimelineTemplate({
             {/* CUSTOM SECTIONS */}
             {visible.includes('custom') && customSections.map(cs => (
               <section key={cs.id} id={cs.section_key} style={{ marginBottom: 40 }}>
-                <SLabel>{cs.title}</SLabel>
+                <SLabel>{cs.section_label}</SLabel>
                 <div style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 10, padding: '20px 24px' }}>
                   <p style={{ margin: 0, lineHeight: 1.8, color: T.text, whiteSpace: 'pre-wrap' }}>{cs.content}</p>
                 </div>

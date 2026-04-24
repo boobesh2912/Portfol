@@ -148,10 +148,10 @@ export default function NeonTemplate({
                 <Card key={exp.id} accent={N.neonBlue}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
                     <div>
-                      <div style={{ fontWeight: 700, color: N.head, fontSize: 16 }}>{exp.title}</div>
+                      <div style={{ fontWeight: 700, color: N.head, fontSize: 16 }}>{exp.role}</div>
                       <div style={{ color: N.neonBlue, fontSize: 13, marginTop: 2, textShadow: glow(N.neonBlue, 4) }}>{exp.company}</div>
                     </div>
-                    <div style={{ fontFamily: mono, fontSize: 10, color: N.mute, textAlign: 'right' }}>{exp.start_date} — {exp.end_date || 'Present'}</div>
+                    <div style={{ fontFamily: mono, fontSize: 10, color: N.mute, textAlign: 'right' }}>{exp.period}</div>
                   </div>
                   {exp.description && <p style={{ margin: '8px 0 0', lineHeight: 1.7, color: N.text, fontSize: 13 }}>{exp.description}</p>}
                 </Card>
@@ -168,8 +168,8 @@ export default function NeonTemplate({
               {educations.map(edu => (
                 <Card key={edu.id} accent={N.neonPink}>
                   <div style={{ fontWeight: 700, color: N.head, fontSize: 16 }}>{edu.degree}</div>
-                  <div style={{ color: N.neonPink, fontSize: 13, marginTop: 2, textShadow: glow(N.neonPink, 4) }}>{edu.school}</div>
-                  {edu.year && <div style={{ fontFamily: mono, fontSize: 10, color: N.mute, marginTop: 4 }}>{edu.year}</div>}
+                  <div style={{ color: N.neonPink, fontSize: 13, marginTop: 2, textShadow: glow(N.neonPink, 4) }}>{edu.institution}</div>
+                  {edu.period && <div style={{ fontFamily: mono, fontSize: 10, color: N.mute, marginTop: 4 }}>{edu.period}</div>}
                   {edu.description && <p style={{ margin: '8px 0 0', lineHeight: 1.7, color: N.text, fontSize: 13 }}>{edu.description}</p>}
                 </Card>
               ))}
@@ -243,8 +243,8 @@ export default function NeonTemplate({
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {testimonials.map(t => (
                 <Card key={t.id} accent={N.neonBlue}>
-                  <p style={{ margin: '0 0 14px', fontSize: 15, lineHeight: 1.8, color: N.text, fontStyle: 'italic' }}>"{t.body}"</p>
-                  <div style={{ fontWeight: 700, color: N.neonBlue, fontSize: 13, textShadow: glow(N.neonBlue, 4) }}>{t.author}</div>
+                  <p style={{ margin: '0 0 14px', fontSize: 15, lineHeight: 1.8, color: N.text, fontStyle: 'italic' }}>"{t.text}"</p>
+                  <div style={{ fontWeight: 700, color: N.neonBlue, fontSize: 13, textShadow: glow(N.neonBlue, 4) }}>{t.name}</div>
                   {t.role && <div style={{ fontSize: 12, color: N.mute }}>{t.role}</div>}
                 </Card>
               ))}
@@ -261,7 +261,7 @@ export default function NeonTemplate({
                 <Card key={b.id} accent={N.neonPurple} style={{ padding: '18px 20px' }}>
                   <div style={{ fontWeight: 700, color: N.head, fontSize: 14, marginBottom: 4 }}>{b.title}</div>
                   {b.author && <div style={{ fontSize: 12, color: N.neonPurple, textShadow: glow(N.neonPurple, 4) }}>{b.author}</div>}
-                  {b.note && <p style={{ margin: '8px 0 0', fontSize: 12, lineHeight: 1.6, color: N.mute }}>{b.note}</p>}
+                  {b.notes && <p style={{ margin: '8px 0 0', fontSize: 12, lineHeight: 1.6, color: N.mute }}>{b.notes}</p>}
                 </Card>
               ))}
             </div>
@@ -276,7 +276,7 @@ export default function NeonTemplate({
               {publications.map(p => (
                 <Card key={p.id} accent={N.neonBlue}>
                   <div style={{ fontWeight: 700, color: N.head, fontSize: 15 }}>{p.title}</div>
-                  {p.venue && <div style={{ fontSize: 12, color: N.neonBlue, marginTop: 3 }}>{p.venue}</div>}
+                  {p.publisher && <div style={{ fontSize: 12, color: N.neonBlue, marginTop: 3 }}>{p.publisher}</div>}
                   {p.year && <div style={{ fontFamily: mono, fontSize: 10, color: N.mute, marginTop: 3 }}>{p.year}</div>}
                   {p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" style={{ fontFamily: mono, fontSize: 11, color: N.neonBlue, textDecoration: 'none', marginTop: 8, display: 'block', textShadow: glow(N.neonBlue, 4) }}>Read →</a>}
                 </Card>
@@ -303,7 +303,7 @@ export default function NeonTemplate({
         {/* CUSTOM SECTIONS */}
         {visible.includes('custom') && customSections.map(cs => (
           <section key={cs.id} id={cs.section_key} style={{ marginBottom: 48 }}>
-            <SLabel color={N.neonBlue}>{cs.title}</SLabel>
+            <SLabel color={N.neonBlue}>{cs.section_label}</SLabel>
             <Card accent={N.neonBlue}>
               <p style={{ margin: 0, lineHeight: 1.8, color: N.text, whiteSpace: 'pre-wrap', fontSize: 14 }}>{cs.content}</p>
             </Card>

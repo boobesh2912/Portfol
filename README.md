@@ -1,186 +1,242 @@
-# Portfol
+# Vizhva
 
 **Your portfolio. Live in 5 minutes.**
 
-Portfol is a form-first portfolio builder SaaS. Fill a form, pick a template, and get a professional portfolio live at `portfol.me/yourname` — for free.
+A SaaS portfolio builder by [GARI TECH](https://garitech.in). Sign up, pick a template, and get a professional portfolio live at `vizhva.me/yourname` — free forever.
 
 ---
 
-## What it is
+## Features
 
-- **Free tier**: Full portfolio at `portfol.me/username`, all sections, 3 templates, basic analytics
-- **Pro tier** ($5/mo): Custom domain, advanced analytics, remove branding, 2 extra templates
-- **Stack**: Vite + React + Tailwind (frontend), FastAPI + Python (backend), Supabase (auth + DB + storage), Dodo Payments (billing)
+- **10 templates** — 6 free (Editorial, Minimal, Bold, Card Grid, Terminal, Magazine) + 4 Pro (Glass, Neon, Timeline, Anime)
+- **Drag-and-drop editor** — reorder sections, toggle visibility, set per-section colors and animations
+- **13 content section types** — projects, experience, education, skills, testimonials, publications, books, and more
+- **Real analytics** — view counts, 30-day sparkline, top countries, device breakdown, referrers (countries/devices/referrers require Pro)
+- **Custom domain** — point your own domain via CNAME; DNS verification is automated (Pro)
+- **Billing** — subscription management via Dodo Payments (checkout, billing portal, webhooks)
 
 ---
 
-## Local Development
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 19, Vite 8, Zustand, React Router 7 |
+| Styling | Tailwind CSS 4, CSS custom properties, inline styles |
+| Auth | Clerk (`@clerk/react` + PyJWT RS256 verification) |
+| Backend | FastAPI, Python 3.12, Uvicorn |
+| Database | Supabase (PostgreSQL) — 16 tables, RLS enabled |
+| Billing | Dodo Payments (HMAC-SHA256 webhooks) |
+| Drag & drop | `@dnd-kit/core` + `@dnd-kit/sortable` |
+| Charts | Recharts |
+| DNS | dnspython (CNAME chain verification) |
+| Frontend hosting | Netlify |
+| Backend hosting | Render (also: Koyeb, Railway, Docker) |
+
+---
+
+## Quick Start
 
 ### Prerequisites
 
-- Node.js 18+
-- Python 3.11+
-- A Supabase project (free tier works)
+- Node.js 18+ and npm
+- Python 3.12
+- [Clerk](https://clerk.com) account (free) — for auth
+- [Supabase](https://supabase.com) project (free tier) — for database
 
-### 1. Clone & install
+### 1. Clone
 
 ```bash
 git clone <repo-url>
-cd portfol
+cd vizhva
 ```
 
-### 2. Frontend setup
-
-```bash
-cd frontend
-cp .env.example .env
-# Fill in .env values (see Environment Variables below)
-npm install
-npm run dev
-# Runs at http://localhost:5173
-```
-
-### 3. Backend setup
+### 2. Backend
 
 ```bash
 cd backend
-cp .env.example .env
-# Fill in .env values
+python -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -r requirements.txt
+cp .env.example .env            # Fill in values (see below)
 uvicorn main:app --reload --port 8000
-# Runs at http://localhost:8000
+# → http://localhost:8000
+# → API docs: http://localhost:8000/docs
 ```
 
-> **Windows note:** `source` does not exist in PowerShell/CMD. Skip the venv or use
-> `.\venv\Scripts\Activate.ps1` (PowerShell) / `venv\Scripts\activate.bat` (CMD).
-> If you have multiple Python versions, run `py -3.11 -m pip install -r requirements.txt`
-> to target Python 3.11 specifically.
+### 3. Frontend
 
-The frontend Vite dev server proxies `/api` → `http://localhost:8000` automatically.
+```bash
+cd frontend
+npm install
+# Create frontend/.env.local
+echo "VITE_CLERK_PUBLISHABLE_KEY=pk_test_xxx" > .env.local
+npm run dev
+# → http://localhost:5173
+```
+
+> Vite automatically proxies `/api/*` to `http://127.0.0.1:8000` — no CORS config needed in development.
+
+### 4. Database
+
+Run these SQL migrations in order in your Supabase **SQL Editor**:
+
+```
+backend/supabase/migrations/001_init.sql      ← core schema (16 tables + RLS)
+backend/supabase/migrations/003_new_sections.sql
+backend/supabase/migrations/004_analytics_fn.sql  ← analytics aggregation function
+backend/supabase/migrations/005_billing.sql
+backend/supabase/migrations/006_add_lastname.sql
+```
+
+Then create two **Storage buckets** in your Supabase dashboard:
+
+| Bucket name | Public | Max size |
+|-------------|--------|----------|
+| `avatars` | ✅ Yes | 5 MB |
+| `project-images` | ✅ Yes | 10 MB |
 
 ---
 
 ## Environment Variables
 
-### Frontend (`frontend/.env`)
-
-| Variable | Description |
-|---|---|
-| `VITE_API_URL` | Backend URL (empty in dev — Vite proxy handles it) |
-| `VITE_SUPABASE_URL` | Your Supabase project URL |
-| `VITE_SUPABASE_ANON_KEY` | Your Supabase anon key |
-| `VITE_DODO_PRODUCT_ID` | Dodo Payments product ID (Phase 6) |
-
 ### Backend (`backend/.env`)
 
-| Variable | Description |
-|---|---|
-| `SUPABASE_URL` | Your Supabase project URL |
-| `SUPABASE_SERVICE_KEY` | Supabase service role key (from project settings) |
-| `SUPABASE_JWT_SECRET` | JWT secret from Supabase (Settings → API → JWT Secret) |
-| `DODO_API_KEY` | Dodo Payments API key (Phase 6) |
-| `DODO_WEBHOOK_SECRET` | Dodo Payments webhook secret (Phase 6) |
-| `DODO_PRODUCT_ID` | Dodo Payments product ID (Phase 6) |
-| `FRONTEND_URL` | Frontend URL for CORS + redirects (e.g. `https://portfol.me`) |
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `CLERK_PUBLISHABLE_KEY` | ✅ | Clerk publishable key — used to auto-derive JWKS URL |
+| `SUPABASE_URL` | ✅ | Supabase project URL |
+| `SUPABASE_SERVICE_KEY` | ✅ | Supabase service role key (bypasses RLS — keep secret) |
+| `FRONTEND_URL` | ✅ | Frontend origin for CORS, e.g. `https://vizhva.me` (comma-separate for multiple) |
+| `DODO_API_KEY` | Billing | Dodo Payments API key; set `skip` to disable billing |
+| `DODO_PRODUCT_ID` | Billing | Dodo product ID for the Pro subscription |
+| `DODO_WEBHOOK_SECRET` | Billing | HMAC-SHA256 webhook signing secret |
+| `DODO_TEST_MODE` | — | `true` → sandbox API; `false` → live API (default: `true`) |
+| `ALLOW_ALL_ORIGINS` | — | `true` → wildcard CORS (dev only, never in prod) |
+| `CLERK_JWKS_URL` | — | Override auto-derived JWKS URL (optional) |
 
----
+### Frontend (`frontend/.env.local`)
 
-## Supabase Setup
-
-1. Create a new project at [supabase.com](https://supabase.com)
-2. Go to **SQL Editor** and run the full migration:
-   ```
-   backend/supabase/migrations/001_init.sql
-   ```
-3. Create two **Storage buckets** (Storage tab):
-   - `avatars` — Public read, authenticated write
-   - `project-images` — Public read, authenticated write
-4. Enable **Google OAuth** (optional) in Authentication → Providers
-5. Copy your project URL, anon key, service role key, and JWT secret into your `.env` files
-
----
-
-## Deployment
-
-### Frontend → Vercel
-
-1. Push `frontend/` to GitHub
-2. Import project in [vercel.com](https://vercel.com)
-3. Set root directory to `frontend`
-4. Add all `VITE_*` environment variables
-5. Deploy — Vercel auto-detects Vite
-
-### Backend → Render
-
-1. Push `backend/` to GitHub (or a monorepo)
-2. Create a new **Web Service** on [render.com](https://render.com)
-3. Build command: `pip install -r requirements.txt`
-4. Start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-5. Add all backend environment variables
-6. Deploy
-
-### DNS (Cloudflare)
-
-1. Add your domain on Cloudflare (free plan)
-2. Set CNAME `portfol.me` → your Vercel deployment URL
-3. Set CNAME `api.portfol.me` → your Render backend URL (update `VITE_API_URL`)
-4. Enable **Proxy** (orange cloud) on both
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `VITE_CLERK_PUBLISHABLE_KEY` | ✅ | Clerk publishable key for `<ClerkProvider>` |
+| `VITE_API_URL` | Production | Backend URL; leave empty in dev (Vite proxy handles it) |
 
 ---
 
 ## Project Structure
 
 ```
-portfol/
-├── frontend/
-│   ├── src/
-│   │   ├── api/          # Axios instance + resource files
-│   │   ├── components/
-│   │   │   ├── editor/   # EditorForm, SectionPanel, OnboardingFlow, PortfolioPreview
-│   │   │   └── layout/   # DashboardLayout
-│   │   ├── pages/        # LandingPage, LoginPage, SignupPage, EditorPage, AnalyticsPage, SettingsPage, PublicPortfolioPage
-│   │   ├── store/        # Zustand stores (auth, profile, editor)
-│   │   └── templates/    # MinimalTemplate, BoldTemplate, CardGridTemplate
-│   ├── .env.example
-│   ├── vite.config.js
-│   └── tailwind.config.js
+vizhva/
+├── netlify.toml                  ← Frontend build config + SPA redirect
+├── render.yaml                   ← Backend deploy config (Render)
+├── Dockerfile                    ← Backend Docker image (backend/)
 │
 ├── backend/
-│   ├── main.py           # FastAPI app + CORS
-│   ├── dependencies.py   # JWT auth + Supabase client
+│   ├── main.py                   ← FastAPI app, CORS, router registration
+│   ├── dependencies.py           ← Clerk JWT verification + Supabase singleton
 │   ├── requirements.txt
 │   ├── .env.example
 │   ├── routers/
-│   │   ├── profile.py
-│   │   ├── projects.py
-│   │   ├── sections.py
-│   │   ├── analytics.py
-│   │   ├── domain.py
-│   │   └── billing.py    # Stubs until Phase 6
-│   └── supabase/
-│       └── migrations/
-│           └── 001_init.sql
+│   │   ├── profile.py            ← Profile CRUD, username, avatar upload, public portfolio
+│   │   ├── projects.py           ← Project CRUD + image upload
+│   │   ├── sections.py           ← All 9 section types + order/visibility/settings
+│   │   ├── skills.py             ← Skills + social links
+│   │   ├── analytics.py          ← View recording (rate-limited) + analytics RPC
+│   │   ├── billing.py            ← Dodo checkout, portal, webhook handler
+│   │   └── domain.py             ← CNAME verification for custom domains
+│   ├── supabase/migrations/      ← SQL migration files (run in order)
+│   └── tests/                    ← pytest suite (no live credentials needed)
 │
-└── PRD.md
+└── frontend/
+    ├── vite.config.js            ← Vite config + /api proxy
+    ├── src/
+    │   ├── main.jsx              ← React root, ClerkProvider
+    │   ├── App.jsx               ← Routes (lazy-loaded pages)
+    │   ├── api/                  ← Axios wrappers, one file per domain
+    │   ├── store/                ← Zustand stores (editor, profile)
+    │   ├── pages/                ← LandingPage, EditorPage, AnalyticsPage, SettingsPage,
+    │   │                            PublicPortfolioPage, LoginPage, SignupPage
+    │   ├── components/
+    │   │   ├── editor/           ← OnboardingFlow, EditorForm, PortfolioPreview, SectionPanel
+    │   │   └── layout/           ← DashboardLayout (sidebar + auth shell)
+    │   └── templates/            ← 10 portfolio template components
+    └── public/
+        └── _redirects            ← Netlify SPA fallback
 ```
 
 ---
 
-## API
+## Deployment
 
-Base URL: `http://localhost:8000` (dev) or your Render URL (prod)
+### Frontend → Netlify
 
-All authenticated routes require `Authorization: Bearer <supabase_access_token>`.
+`netlify.toml` is pre-configured. Connect the repo and set:
 
-See [PRD.md](PRD.md) Section 9 for the full API reference.
+```
+Build command:     cd frontend && npm run build
+Publish directory: frontend/dist
+```
+
+Environment variables to add in Netlify dashboard:
+- `VITE_CLERK_PUBLISHABLE_KEY`
+- `VITE_API_URL` (your Render backend URL)
+
+### Backend → Render
+
+`render.yaml` is pre-configured. Connect the repo or set manually:
+
+```
+Root directory:  backend
+Build command:   pip install -r requirements.txt
+Start command:   uvicorn main:app --host 0.0.0.0 --port $PORT
+Health check:    /health
+```
+
+Add all backend environment variables in the Render dashboard.
+
+### Backend → Docker
+
+```bash
+cd backend
+docker build -t vizhva-api .
+docker run -p 8000:8000 \
+  -e CLERK_PUBLISHABLE_KEY=pk_live_xxx \
+  -e SUPABASE_URL=https://xxx.supabase.co \
+  -e SUPABASE_SERVICE_KEY=eyJ... \
+  -e FRONTEND_URL=https://vizhva.me \
+  vizhva-api
+```
 
 ---
 
-## Billing (Phase 6)
+## Running Tests
 
-Billing via Dodo Payments is scaffolded but inactive until Phase 6.  
-To activate, provide `DODO_API_KEY`, `DODO_WEBHOOK_SECRET`, and `DODO_PRODUCT_ID`.
+```bash
+cd backend
+pytest              # all tests
+pytest -v           # verbose
+```
+
+Tests use FastAPI's `TestClient` with dependency overrides — no live Supabase or Clerk credentials required.
 
 ---
 
-*Built with FastAPI, React, and Supabase. Designed to support 200+ users on $0/month infrastructure.*
+## Contributing
+
+1. Fork the repo
+2. Create a feature branch: `git checkout -b feat/my-feature`
+3. Make your changes and add tests if applicable
+4. Open a pull request
+
+Please keep PRs focused — one feature or fix per PR.
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE) for details.
+
+---
+
+*Built with FastAPI, React, and Supabase. A product from [GARI TECH](https://garitech.in).*

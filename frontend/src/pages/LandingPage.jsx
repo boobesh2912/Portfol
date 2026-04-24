@@ -402,9 +402,10 @@ export default function LandingPage() {
               <div style={{ position: 'absolute', top: 0, right: 0, background: 'var(--accent)', fontSize: 10, fontWeight: 700, padding: '4px 14px', borderBottomLeftRadius: 8, color: '#fff', letterSpacing: 1 }}>POPULAR</div>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--accent)', letterSpacing: '.12em', textTransform: 'uppercase' }}>Pro</span>
               <div style={{ fontFamily: 'var(--font-display)', fontSize: 48, fontWeight: 600, color: 'var(--text-heading)', margin: '8px 0 2px', lineHeight: 1 }}>{proPrice}</div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-muted)', marginBottom: 24 }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-muted)', marginBottom: isINR ? 4 : 24 }}>
                 /month{isINR && <span style={{ marginLeft: 6, opacity: 0.6 }}>≈ $9 USD</span>}
               </div>
+              {isINR && <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-muted)', opacity: 0.55, marginBottom: 24 }}>Billed in USD at checkout</div>}
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 9, marginBottom: 24 }}>
                 {['Everything in Starter', 'Custom domain + SSL', 'Advanced analytics', '4 Pro-exclusive templates', 'Remove branding', 'Priority support'].map(f => (
                   <li key={f} style={{ fontSize: 13, color: 'var(--text)', display: 'flex', gap: 10 }}>
