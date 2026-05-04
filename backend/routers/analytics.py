@@ -3,7 +3,8 @@ from pydantic import BaseModel
 from typing import Optional
 import hashlib
 import uuid
-from dependencies import get_current_user, get_supabase_client
+import json
+from dependencies import get_current_user, get_supabase_client, get_redis_client
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
@@ -23,8 +24,7 @@ def hash_ip(ip: str) -> str:
     return hashlib.sha256(ip.encode()).hexdigest()
 
 
-async def record_view_task(username: str, ip_hash: str, country: str, device_type: str, referrer: str):
-    supabase = get_supabase_client()
+async def record_view_task(username: str, ip_hash: str, country: str, device_type: str, referrer: str, supabase):
     supabase.table("page_views").insert({
         "id": str(uuid.uuid4()),
         "portfolio_username": username,
@@ -52,8 +52,9 @@ async def record_view(request: Request, payload: ViewPayload, background_tasks: 
     user_agent = request.headers.get("User-Agent", "")
     device_type = detect_device(user_agent)
     ip_hash = hash_ip(ip)
+    supabase = get_supabase_client()
     background_tasks.add_task(
-        record_view_task, payload.username, ip_hash, country, device_type, payload.referrer or "direct"
+        record_view_task, payload.username, ip_hash, country, device_type, payload.referrer or "direct", supabase
     )
     return {"ok": True}
 
@@ -61,12 +62,24 @@ async def record_view(request: Request, payload: ViewPayload, background_tasks: 
 @router.get("/me")
 async def get_my_analytics(user=Depends(get_current_user)):
     supabase = get_supabase_client()
+    redis_client = get_redis_client()
     profile = supabase.table("profiles").select("username").eq("id", user["sub"]).single().execute().data
     if not profile:
         return {}
     username = profile["username"]
 
+    cache_key = f"analytics:{username}"
+    if redis_client:
+        cached = redis_client.get(cache_key)
+        if cached:
+            return json.loads(cached)
+
     # Aggregate in the database instead of fetching all rows into Python.
     # Supabase exposes PostgreSQL via its REST layer; we use rpc() for custom SQL.
     result = supabase.rpc("get_portfolio_analytics", {"p_username": username}).execute()
-    return result.data or {}
+    data = result.data or {}
+
+    if redis_client and data:
+        redis_client.setex(cache_key, 300, json.dumps(data))  # Cache for 5 minutes
+
+    return data

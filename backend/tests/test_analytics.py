@@ -56,25 +56,33 @@ app.dependency_overrides[get_current_user] = override_get_current_user
 class TestAnalyticsView:
     """POST /api/analytics/view"""
 
-    def test_records_view_returns_ok(self):
+    @patch('routers.analytics.get_supabase_client')
+    @patch('routers.analytics.record_view_task')
+    def test_records_view_returns_ok(self, mock_task, mock_get_sb):
         mock_sb = make_mock_supabase()
-        app.dependency_overrides[get_supabase_client] = lambda: mock_sb
+        mock_get_sb.return_value = mock_sb
         with TestClient(app) as client:
             resp = client.post("/api/analytics/view", json={"username": "alice", "referrer": "https://linkedin.com"})
         assert resp.status_code == 200
         assert resp.json() == {"ok": True}
+        mock_task.assert_called_once()
 
-    def test_view_without_referrer_defaults_to_direct(self):
+    @patch('routers.analytics.get_supabase_client')
+    @patch('routers.analytics.record_view_task')
+    def test_view_without_referrer_defaults_to_direct(self, mock_task, mock_get_sb):
         mock_sb = make_mock_supabase()
-        app.dependency_overrides[get_supabase_client] = lambda: mock_sb
+        mock_get_sb.return_value = mock_sb
         with TestClient(app) as client:
             resp = client.post("/api/analytics/view", json={"username": "bob"})
         assert resp.status_code == 200
+        mock_task.assert_called_once()
 
-    def test_rate_limit_enforced(self):
+    @patch('routers.analytics.get_supabase_client')
+    @patch('routers.analytics.record_view_task')
+    def test_rate_limit_enforced(self, mock_task, mock_get_sb):
         """Exceeding 30 req/min from the same IP should return 429."""
         mock_sb = make_mock_supabase()
-        app.dependency_overrides[get_supabase_client] = lambda: mock_sb
+        mock_get_sb.return_value = mock_sb
         with TestClient(app) as client:
             responses = [
                 client.post("/api/analytics/view", json={"username": "x"})
@@ -87,7 +95,8 @@ class TestAnalyticsView:
 class TestAnalyticsMe:
     """GET /api/analytics/me"""
 
-    def test_returns_aggregated_data(self):
+    @patch('routers.analytics.get_supabase_client')
+    def test_returns_aggregated_data(self, mock_get_sb):
         mock_sb = make_mock_supabase(rpc_data={
             "total_views": 100,
             "views_7d": 20,
@@ -97,7 +106,7 @@ class TestAnalyticsMe:
             "device_breakdown": {"mobile": 60, "desktop": 40},
             "top_referrers": [{"referrer": "linkedin.com", "count": 25}],
         })
-        app.dependency_overrides[get_supabase_client] = lambda: mock_sb
+        mock_get_sb.return_value = mock_sb
         with TestClient(app) as client:
             resp = client.get("/api/analytics/me")
         assert resp.status_code == 200
@@ -107,10 +116,11 @@ class TestAnalyticsMe:
         assert len(data["top_countries"]) == 1
         assert data["top_countries"][0]["country"] == "IN"
 
-    def test_returns_empty_when_no_profile(self):
+    @patch('routers.analytics.get_supabase_client')
+    def test_returns_empty_when_no_profile(self, mock_get_sb):
         mock_sb = make_mock_supabase()
         mock_sb.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value.data = None
-        app.dependency_overrides[get_supabase_client] = lambda: mock_sb
+        mock_get_sb.return_value = mock_sb
         with TestClient(app) as client:
             resp = client.get("/api/analytics/me")
         assert resp.status_code == 200

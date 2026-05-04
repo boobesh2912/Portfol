@@ -5,9 +5,14 @@ import httpx
 import jwt
 from jwt import PyJWKClient
 from supabase import create_client, Client
+import redis
+import logging
+
+logger = logging.getLogger(__name__)
 
 _supabase_client: Optional[Client] = None
 _jwks_client: Optional[PyJWKClient] = None
+_redis_client: Optional[redis.Redis] = None
 
 
 def get_supabase_client() -> Client:
@@ -17,6 +22,19 @@ def get_supabase_client() -> Client:
         key = os.environ["SUPABASE_SERVICE_KEY"]
         _supabase_client = create_client(url, key)
     return _supabase_client
+
+
+def get_redis_client() -> Optional[redis.Redis]:
+    global _redis_client
+    if _redis_client is None:
+        redis_url = os.environ.get("REDIS_URL")
+        if redis_url:
+            try:
+                _redis_client = redis.from_url(redis_url)
+                logger.info("Redis client initialized")
+            except Exception as e:
+                logger.warning(f"Failed to connect to Redis: {e}")
+    return _redis_client
 
 
 def _get_jwks_client() -> PyJWKClient:

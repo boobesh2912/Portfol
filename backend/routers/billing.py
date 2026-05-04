@@ -2,12 +2,15 @@ import hashlib
 import hmac
 import json
 import os
+import logging
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from dependencies import get_current_user, get_supabase_client
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/billing", tags=["billing"])
 
@@ -107,7 +110,10 @@ async def create_checkout(user=Depends(get_current_user)):
             },
         )
 
+    logger.info(f"Dodo checkout response: {resp.status_code} - {resp.text[:500]}")
+
     if resp.status_code not in (200, 201):
+        logger.error(f"Dodo checkout failed: {resp.status_code} - {resp.text}")
         raise HTTPException(
             status_code=502,
             detail=f"Dodo Payments error {resp.status_code}: {resp.text[:300]}",
@@ -116,8 +122,10 @@ async def create_checkout(user=Depends(get_current_user)):
     data = resp.json()
     checkout_url = data.get("checkout_url") or data.get("url") or data.get("payment_link")
     if not checkout_url:
+        logger.error(f"Dodo response missing checkout_url: {data}")
         raise HTTPException(status_code=502, detail=f"Dodo response missing checkout_url: {data}")
 
+    logger.info(f"Checkout URL generated: {checkout_url}")
     return {"checkout_url": checkout_url}
 
 
@@ -174,45 +182,60 @@ async def handle_webhook(request: Request):
         # Dodo may send "v1,<hex>" format — extract the hex part
         received = sig_header.split(",")[-1].strip() if "," in sig_header else sig_header
         if not hmac.compare_digest(expected, received):
+            logger.warning(f"Invalid webhook signature: expected {expected}, received {received}")
             return JSONResponse(status_code=400, content={"error": "Invalid webhook signature"})
 
     try:
         event = json.loads(raw_body)
-    except Exception:
+    except Exception as e:
+        logger.error(f"Invalid JSON in webhook: {e}")
         return JSONResponse(status_code=400, content={"error": "Invalid JSON body"})
 
     event_type = event.get("type") or event.get("event_type", "")
     data = event.get("data", {})
 
+    logger.info(f"Webhook received: {event_type} - {data}")
+
     supabase = get_supabase_client()
 
-    if event_type == "subscription.active":
-        clerk_user_id = (data.get("metadata") or {}).get("clerk_user_id")
-        sub_id = data.get("subscription_id") or data.get("id")
-        if clerk_user_id:
-            supabase.table("profiles").update({
-                "is_pro": True,
-                "dodo_subscription_id": sub_id,
-                "subscription_status": "active",
-            }).eq("id", clerk_user_id).execute()
+    try:
+        if event_type == "subscription.active":
+            clerk_user_id = (data.get("metadata") or {}).get("clerk_user_id")
+            sub_id = data.get("subscription_id") or data.get("id")
+            if clerk_user_id:
+                supabase.table("profiles").update({
+                    "is_pro": True,
+                    "dodo_subscription_id": sub_id,
+                    "subscription_status": "active",
+                }).eq("id", clerk_user_id).execute()
+                logger.info(f"Activated subscription for user {clerk_user_id}")
 
-    elif event_type in ("subscription.on_hold", "subscription.failed", "subscription.cancelled"):
-        clerk_user_id = (data.get("metadata") or {}).get("clerk_user_id")
-        if clerk_user_id:
-            supabase.table("profiles").update({
-                "is_pro": False,
-                "subscription_status": event_type.split(".")[-1],
-            }).eq("id", clerk_user_id).execute()
+        elif event_type in ("subscription.on_hold", "subscription.failed", "subscription.cancelled"):
+            clerk_user_id = (data.get("metadata") or {}).get("clerk_user_id")
+            if clerk_user_id:
+                supabase.table("profiles").update({
+                    "is_pro": False,
+                    "subscription_status": event_type.split(".")[-1],
+                }).eq("id", clerk_user_id).execute()
+                logger.info(f"Updated subscription status to {event_type} for user {clerk_user_id}")
 
-    elif event_type == "subscription.renewed":
-        clerk_user_id = (data.get("metadata") or {}).get("clerk_user_id")
-        if clerk_user_id:
-            supabase.table("profiles").update({
-                "is_pro": True,
-                "subscription_status": "active",
-            }).eq("id", clerk_user_id).execute()
+        elif event_type == "subscription.renewed":
+            clerk_user_id = (data.get("metadata") or {}).get("clerk_user_id")
+            if clerk_user_id:
+                supabase.table("profiles").update({
+                    "is_pro": True,
+                    "subscription_status": "active",
+                }).eq("id", clerk_user_id).execute()
+                logger.info(f"Renewed subscription for user {clerk_user_id}")
 
-    elif event_type == "payment.succeeded":
-        pass  # subscription.active handles access grant
+        elif event_type == "payment.succeeded":
+            pass  # subscription.active handles access grant
+
+        else:
+            logger.warning(f"Unhandled webhook event type: {event_type}")
+
+    except Exception as e:
+        logger.error(f"Error processing webhook {event_type}: {e}")
+        return JSONResponse(status_code=500, content={"error": "Internal server error"})
 
     return {"received": True}
